@@ -3,8 +3,10 @@ from uliweb.orm import *
 from uliweb import models
 
 class MediaDirRoot(Model):
-    path = Field(str, max_length = 512, nullable=False, Index=True)
+    path = Field(str, max_length = 512, nullable=False, index=True)
+    comment = Field(str, max_length = 1024)
     mounted = Field(bool,default = True)
+    deleted = Field(bool,default = False)
 
 class MediaFile(Model):
     root = Reference("mediadirroot")

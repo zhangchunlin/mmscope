@@ -1,0 +1,113 @@
+{{extend "layout_mm.html"}} {{block content_main}} {{use "ui.jquery"}} {{use "ui.vue"}} {{use "ui.iview"}}
+<div id="app">
+    <row><tree :data="root_dirs" :load-data="load_data" @on-select-change="tree_select"></tree></row>
+    <row>
+        <i-input v-model="dir_path">
+            <span slot="prepend">file://</span>
+            <i-button slot="append" icon="android-add" @click="add_dir_path"></i-button>
+        </i-input>
+    </row>
+    <br/>
+    <i-table stripe border :columns="columns_dirs" :data="data_dirs"></i-table>
+</div>
+<script>
+var vm = new Vue({
+    el: '#app',
+    data: {
+        root_dirs: {{=root_dirs}},
+        dir_path : "",
+        columns_dirs: [
+            { title: 'Path', key: 'path' },
+            { title: 'Comment', key: 'comment' },
+            {
+                title: 'Mounted',
+                render: function(h, params){
+                    return h('span',{
+                            'class' : params.row.mounted?"label label-success":"label label-default"
+                            },
+                        params.row.mounted?"Yes":"No"
+                    )
+                }
+            },
+            {
+                title: 'Action',
+                align: 'center',
+                render: function(h, params){
+                    return h('div', [
+                        h('Button', {
+                            props: {
+                                type: 'error',
+                                size: 'small'
+                            },
+                            on: {
+                                click: () => {
+                                    vm.remove_path(params)
+                                }
+                            }
+                        }, 'Delete')
+                    ]);
+                }
+            }
+        ],
+        data_dirs: []
+    },
+    methods: {
+        update_list: function() {
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.MmDir.api_list')}}",
+                data: {},
+                success: function (data) {
+                    vm.data_dirs = data.list
+                }
+            })
+        },
+        load_data(item, callback) {
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.MmDir.api_dir_children')}}",
+                data: {"path":item.path},
+                success: function (data) {
+                    callback(data)
+                }
+            })
+        },
+        tree_select(data){
+            vm.dir_path = data[0].path
+        },
+        add_dir_path(){
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.MmDir.api_add_dir_path')}}",
+                data: {"path":vm.dir_path},
+                success: function (data) {
+                    if (data.success) {
+                        vm.$Message.success(data.msg)
+                        vm.update_list()
+                    }
+                    else {
+                        vm.$Message.error(data.msg);
+                    }
+                }
+            })
+        },
+        remove_path(data){
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.MmDir.api_remove_dir_path')}}",
+                data: {"path":data.row.path},
+                success: function (data) {
+                    if (data.success) {
+                        vm.$Message.success(data.msg)
+                        vm.update_list()
+                    }
+                    else {
+                        vm.$Message.error(data.msg);
+                    }
+                }
+            })
+        }
+    }
+})
+vm.update_list()
+</script> {{end content_main}}
