@@ -45,6 +45,8 @@ class MmDir(object):
                     p.save()
                     return json({"success":True,"msg":"Successfully added!"})
                 return json({"success":False,"msg":"already in the list"})
+            if not os.path.isdir(self.path):
+                return json({"success":True,"msg":"Directory not found"})
             p = self.MediaDirRoot(path=self.path)
             p.save()
             return json({"success":True,"msg":"Successfully added!"})

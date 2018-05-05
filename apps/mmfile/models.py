@@ -7,6 +7,8 @@ class MediaDirRoot(Model):
     comment = Field(str, max_length = 1024)
     mounted = Field(bool,default = True)
     deleted = Field(bool,default = False)
+    scantime = Field(datetime.datetime)
+    props = Field(JSON, default={})
 
 class MediaFile(Model):
     root = Reference("mediadirroot")

@@ -2,9 +2,9 @@
 <div id="app">
     <row><tree :data="root_dirs" :load-data="load_data" @on-select-change="tree_select"></tree></row>
     <row>
-        <i-input v-model="dir_path">
+        <i-input v-model="dir_path" @on-enter="add_dir_path">
             <span slot="prepend">file://</span>
-            <i-button slot="append" icon="android-add" @click="add_dir_path"></i-button>
+            <i-button icon="android-add" @click="add_dir_path"></i-button>
         </i-input>
     </row>
     <br/>
@@ -19,6 +19,7 @@ var vm = new Vue({
         columns_dirs: [
             { title: 'Path', key: 'path' },
             { title: 'Comment', key: 'comment' },
+            { title: 'Last scan time', key: 'scantime' },
             {
                 title: 'Mounted',
                 render: function(h, params){
@@ -40,7 +41,7 @@ var vm = new Vue({
                                 size: 'small'
                             },
                             on: {
-                                click: () => {
+                                click: function(){
                                     vm.remove_path(params)
                                 }
                             }
