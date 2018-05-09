@@ -1,12 +1,20 @@
-{{extend "layout_mm.html"}} {{block content_main}} {{use "ui.jquery"}} {{use "ui.vue"}} {{use "ui.iview"}}
+{{extend "layout_mm.html"}}
+
+{{block content_main}}
+{{use "ui.jquery"}}
+{{use "ui.vue"}}
+{{use "ui.iview"}}
+{{include "vue/inc_logs.html"}}
 <div id="app">
     <row><tree :data="root_dirs" :load-data="load_data" @on-select-change="tree_select"></tree></row>
     <row>
         <i-input v-model="dir_path" @on-enter="add_dir_path">
             <span slot="prepend">file://</span>
-            <i-button icon="android-add" @click="add_dir_path"></i-button>
+            <i-button slot="append" icon="android-add" @click="add_dir_path"></i-button>
         </i-input>
     </row>
+    <br/>
+    <log-bar ref="logbar"></log-bar>
     <br/>
     <i-table stripe border :columns="columns_dirs" :data="data_dirs"></i-table>
 </div>
@@ -37,6 +45,20 @@ var vm = new Vue({
                     return h('div', [
                         h('Button', {
                             props: {
+                                type: 'primary',
+                                size: 'small'
+                            },
+                            style: {
+                                marginRight: '5px'
+                            },
+                            on: {
+                                click: function(){
+                                    vm.scan_path(params)
+                                }
+                            }
+                        }, 'Scan'),
+                        h('Button', {
+                            props: {
                                 type: 'error',
                                 size: 'small'
                             },
@@ -53,6 +75,12 @@ var vm = new Vue({
         data_dirs: []
     },
     methods: {
+        init:function(){
+            this.$Message.config({
+                top: 100,
+                duration: 5
+            });
+        },
         update_list: function() {
             $.ajax({
                 type: "POST",
@@ -107,8 +135,26 @@ var vm = new Vue({
                     }
                 }
             })
+        },
+        scan_path(data){
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.MmDir.api_scan_dir_path')}}",
+                data: {"path":data.row.path},
+                success: function (data) {
+                    if (data.success) {
+                        vm.$Message.success(data.msg)
+                        vm.$refs.logbar.showlog()
+                    }
+                    else {
+                        vm.$Message.error(data.msg);
+                    }
+                }
+            })
         }
     }
 })
+vm.init()
 vm.update_list()
-</script> {{end content_main}}
+</script>
+{{end content_main}}

@@ -12,11 +12,12 @@ class MediaDirRoot(Model):
 
 class MediaFile(Model):
     root = Reference("mediadirroot")
+    relpath = Field(str, max_length = 512, nullable=False, index=True)
     meta = Reference("mediametadata")
 
 class MediaMetaData(Model):
     size = Field(int)
-    sha1sum = Field(str, max_length = 64)
+    sha1sum = Field(str, max_length = 64, index=True)
 
     @classmethod
     def OnInit(cls):

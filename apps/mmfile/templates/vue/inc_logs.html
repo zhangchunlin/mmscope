@@ -1,0 +1,38 @@
+<script>
+Vue.component('log-bar', {
+    delimiters: ['{', '}'],
+    data : function(){return {
+        msg : "",
+        show : false
+    }},
+    methods: {
+        showlog(){
+            var thisc = this
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.api_logs')}}",
+                data: {},
+                success: function (data) {
+                    var logs
+                    logs = data.logs
+                    if (logs.length!=0){
+                        thisc.show = true
+                        var ll
+                        console.log("get "+logs.length+" logs")
+                        for (var i=0;i<logs.length;i++){
+                            ll = logs[i]
+                            thisc.msg = ll.msg
+                            console.log(thisc.msg)
+                        }
+                        console.log(thisc)
+                        if (!ll.finished){
+                            setTimeout(thisc.showlog,300);
+                        }
+                    }
+                }
+            })
+        }
+    },
+    template: '<p v-if="show" class="bg-info" style="padding:8px">message: <span class="text-primary">{msg}</span></p>'
+})
+</script>

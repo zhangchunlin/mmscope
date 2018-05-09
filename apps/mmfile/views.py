@@ -2,6 +2,9 @@
 from uliweb import expose, functions, models
 import json as json_
 import os
+import logging
+
+log = logging.getLogger('mmfile')
 
 @expose('/mmfile')
 class MmFile(object):
@@ -37,29 +40,46 @@ class MmDir(object):
         return json([])
 
     def api_add_dir_path(self):
-        if self.path:
-            p = self.MediaDirRoot.get(self.MediaDirRoot.c.path==self.path)
-            if p:
-                if p.deleted:
-                    p.deleted = False
-                    p.save()
-                    return json({"success":True,"msg":"Successfully added!"})
-                return json({"success":False,"msg":"already in the list"})
-            if not os.path.isdir(self.path):
-                return json({"success":True,"msg":"Directory not found"})
-            p = self.MediaDirRoot(path=self.path)
-            p.save()
-            return json({"success":True,"msg":"Successfully added!"})
-        return json({"success":False,"msg":"path not found"})
+        if not self.path:
+            return json({"success":False,"msg":"path not found"})
+
+        p = self.MediaDirRoot.get(self.MediaDirRoot.c.path==self.path)
+        if p:
+            if p.deleted:
+                p.deleted = False
+                p.save()
+                return json({"success":True,"msg":"Successfully added!"})
+            return json({"success":False,"msg":"already in the list"})
+        if not os.path.isdir(self.path):
+            return json({"success":True,"msg":"Directory not found"})
+        p = self.MediaDirRoot(path=self.path)
+        p.save()
+        return json({"success":True,"msg":"Successfully added!"})
 
     def api_remove_dir_path(self):
-        if self.path:
-            p = self.MediaDirRoot.get(self.MediaDirRoot.c.path==self.path)
-            if p:
-                p.deleted = True
-                p.save()
-                return json({"success":True,"msg":"Successfully deleted!"})
+        if not self.path:
+            return json({"success":False,"msg":"path not found"})
 
-        return json({"success":False,"msg":"path not found"})
+        p = self.MediaDirRoot.get(self.MediaDirRoot.c.path==self.path)
+        if p:
+            p.deleted = True
+            p.save()
+            return json({"success":True,"msg":"Successfully deleted!"})
 
+    def api_scan_dir_path(self):
+        if not self.path:
+            return json({"success":False,"msg":"path not found"})
+        if not os.path.isdir(self.path):
+            return json({"success":False,"msg":"directory not mounted?"})
+        log.info("scan path: %s"%(self.path))
+        return json(functions.mm_scan_dir(self.path))
 
+@expose("/api_logs")
+def api_logs():
+        udb = functions.get_unqlite(name="mem")
+        logs = udb.collection("logs")
+        logs.create()
+        l = logs.all()
+        for i in l:
+            logs.delete(i["__id"])
+        return json({"logs":l})
