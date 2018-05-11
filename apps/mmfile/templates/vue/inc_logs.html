@@ -10,24 +10,24 @@ Vue.component('log-bar', {
             var thisc = this
             $.ajax({
                 type: "POST",
-                url: "{{=url_for('mmfile.views.api_logs')}}",
+                url: "{{=url_for('mmfile.views.api_log')}}",
                 data: {},
                 success: function (data) {
-                    var logs
-                    logs = data.logs
-                    if (logs.length!=0){
-                        thisc.show = true
-                        var ll
-                        console.log("get "+logs.length+" logs")
-                        for (var i=0;i<logs.length;i++){
-                            ll = logs[i]
-                            thisc.msg = ll.msg
-                            console.log(thisc.msg)
-                        }
-                        console.log(thisc)
-                        if (!ll.finished){
-                            setTimeout(thisc.showlog,300);
-                        }
+                    var log
+                    log = data.log
+                    //console.log(log)
+                    if (log==null) {
+                        setTimeout(thisc.showlog,5000);
+                        return
+                    }
+                    thisc.msg = log.msg
+                    if (!thisc.show) {thisc.show=true}
+
+                    if (!log.finished) {
+                        setTimeout(thisc.showlog,5);
+                    }
+                    else{
+                        console.log("log finished")
                     }
                 }
             })

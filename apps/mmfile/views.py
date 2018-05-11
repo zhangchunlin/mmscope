@@ -74,12 +74,19 @@ class MmDir(object):
         log.info("scan path: %s"%(self.path))
         return json(functions.mm_scan_dir(self.path))
 
-@expose("/api_logs")
-def api_logs():
-        udb = functions.get_unqlite(name="mem")
-        logs = udb.collection("logs")
-        logs.create()
-        l = logs.all()
-        for i in l:
-            logs.delete(i["__id"])
-        return json({"logs":l})
+@expose("/api_log")
+def api_log():
+    from gevent import sleep
+    udb = functions.get_unqlite(name="mem")
+    logs = udb.collection("logs")
+    logs.create()
+    count = 0
+    for i in logs:
+        if i:
+            logs.delete(i['__id'])
+            return json({"log":i})
+        count += 1
+        if count>10:
+            break
+        sleep(0.2)
+    return json({})

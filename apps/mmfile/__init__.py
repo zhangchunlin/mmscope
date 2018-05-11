@@ -111,6 +111,7 @@ def mm_scan_dir(path):
                             info = _get_file_info(fpath)
                             mmudb[rel_fpath] = pickle_dumps(info)
                             log2("%s: %s scanned"%(path,rel_fpath))
+                            gevent.sleep(0)
         finally:
             log2("%s scan finished"%(path))
             udb["scanning"] = 'false'
@@ -139,7 +140,7 @@ def mm_scan_dir(path):
                 mfile = MediaFile(root=root.id,relpath=k,meta=meta.id)
                 mfile.save()
         Commit()
-        log2("finished scanning and update",finished=True)
+        log2("finished scanning and update '%s'"%(path),finished=True)
 
     gevent.spawn(scan)
     return {"success":True,"msg":"Scan started"}
