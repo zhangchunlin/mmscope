@@ -91,7 +91,7 @@ def mm_scan_dir(path):
         logs = udb.collection("logs")
         logs.create()
         def log2(msg,finished=False):
-            logs.store({"msg":msg,"finished":False})
+            logs.store({"msg":msg,"finished":finished})
             log.info(msg)
 
         try:
