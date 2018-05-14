@@ -1,5 +1,9 @@
 {{extend "layout_mm.html"}}
 
+{{block mainmenu}}
+{{<< mainmenu('files')}}
+{{end mainmenu}}
+
 {{block content_main}}
 {{use "ui.iview"}}
 
