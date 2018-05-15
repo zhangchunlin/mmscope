@@ -5,6 +5,8 @@ import platform
 import hashlib
 import logging
 from pickle import dumps as pickle_dumps, loads as pickle_loads
+from datetime import datetime
+from sqlalchemy.sql import and_
 
 
 log = logging.getLogger('mmfile')
@@ -70,7 +72,8 @@ def _get_file_info(fpath):
         while len(buf) > 0:
             h.update(buf)
             buf = f.read(BLOCKSIZE)
-    return {"size":os.stat(fpath).st_size,"sha1":h.hexdigest()}
+    st = os.stat(fpath)
+    return {"size":st.st_size,"ctime":st.st_ctime,"sha1":h.hexdigest()}
 
 def mm_scan_dir(path):
     from uliweb import settings, functions, models
@@ -126,15 +129,18 @@ def mm_scan_dir(path):
             return
         Begin()
         for k,v in mmudb:
+            if not isinstance(k,unicode):
+                k = k.decode("utf8")
             d = pickle_loads(v)
             size = d["size"]
             sha1 = d["sha1"]
+            ctime = d["ctime"]
             meta = MediaMetaData.get(MediaMetaData.c.sha1sum==sha1 and MediaMetaData.c.size==size)
             if not meta:
                 #log.info("add meta data: size=%s, sha1=%s"%(size,sha1))
-                meta = MediaMetaData(size=size,sha1sum=sha1)
+                meta = MediaMetaData(size=size,sha1sum=sha1,ctime=datetime.fromtimestamp(ctime))
                 meta.save()
-            mfile = MediaFile.get(MediaFile.c.root==root.id and MediaFile.c.relpath==k)
+            mfile = MediaFile.get(and_(MediaFile.c.root==root.id, MediaFile.c.relpath==k))
             if not mfile:
                 log.info("add %s in db"%(k))
                 mfile = MediaFile(root=root.id,relpath=k,meta=meta.id)

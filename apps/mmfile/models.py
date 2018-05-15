@@ -18,6 +18,7 @@ class MediaFile(Model):
 class MediaMetaData(Model):
     size = Field(int)
     sha1sum = Field(str, max_length = 64, index=True)
+    ctime = Field(datetime.datetime)
 
     @classmethod
     def OnInit(cls):

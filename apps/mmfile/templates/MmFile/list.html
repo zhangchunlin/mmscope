@@ -5,6 +5,50 @@
 {{end mainmenu}}
 
 {{block content_main}}
+{{use "ui.vue"}}
 {{use "ui.iview"}}
-
+<div id="app">
+<page :total="total" :page-size="page_size" :current.sync="current" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
+<i-table border :columns="columns_files" :data="data_files"></i-table>
+<page :total="total" :page-size="page_size" :current.sync="current" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
+</div>
+<script>
+var vm = new Vue({
+    el: '#app',
+    data: {
+        columns_files : [
+            { title: 'Filename', key: 'filename' },
+            { title: 'Create time', key: 'ctime' },
+        ],
+        data_files : [],
+        total : 0,
+        page_size : 10,
+        current : 1
+    },
+    methods : {
+        update_list : function(){
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.MmFile.api_list')}}",
+                data: {
+                    page_size:vm.page_size,
+                    current:vm.current
+                },
+                success: function (data) {
+                    vm.data_files = data.list
+                    vm.total = data.total
+                }
+            })
+        },
+        page_on_change : function(){
+            vm.update_list()
+        },
+        page_on_page_size_change : function(data) {
+            vm.page_size = data
+            vm.update_list()
+        }
+    }
+})
+vm.update_list()
+</script>
 {{end content_main}}

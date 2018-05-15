@@ -3,6 +3,8 @@ from uliweb import expose, functions, models
 import json as json_
 import os
 import logging
+import time
+from sqlalchemy.sql import and_
 
 log = logging.getLogger('mmfile')
 
@@ -11,6 +13,25 @@ class MmFile(object):
     @expose('')
     def list(self):
         return {}
+
+    def api_list(self):
+        page_size = int(request.values.get("page_size",10))
+        current = int(request.values.get("current",1))
+        MediaDirRoot = models.mediadirroot
+        MediaFile = models.mediafile
+
+        def _get_info(i):
+            d = i.to_dict()
+            d["filename"] = os.path.split(d["relpath"])[-1]
+            meta = i.meta
+            d["ctime"] = str(meta.ctime)
+            return d
+        q = MediaFile.filter(and_(MediaFile.c.root==MediaDirRoot.c.id, MediaDirRoot.c.deleted==False))
+        q = q.offset((current-1)*page_size)
+        total = q.count()
+        q = q.limit(page_size)
+        l = [_get_info(i) for i in q]
+        return json({"list":l,"total":total})
 
 @expose('/mmdir')
 class MmDir(object):
