@@ -97,10 +97,11 @@ def mm_scan_dir(path):
             logs.store({"msg":msg,"finished":finished})
             log.info(msg)
 
+        fcount = 0
         try:
             udb["scanning"] = 'true'
             log2("begin to scan %s"%(path))
-            ext_set = set(settings.MMSCOPE.scan_exts)
+            ext_set = set(settings.MMSCOPE.scan_exts.keys())
             mmudb = functions.get_unqlite(path=os.path.join(path,"_mm.udb"))
             with mmudb.transaction():
                 for root,dnames,fnames in os.walk(path):
@@ -113,6 +114,7 @@ def mm_scan_dir(path):
                         if not mmudb.exists(rel_fpath):
                             info = _get_file_info(fpath)
                             mmudb[rel_fpath] = pickle_dumps(info)
+                            fcount += 1
                             log2("%s: %s scanned"%(path,rel_fpath))
                             gevent.sleep(0)
         finally:
@@ -128,6 +130,7 @@ def mm_scan_dir(path):
             logs.store({"msg":"error %s not found in database"%(path),"finished":True})
             return
         Begin()
+        ncount = 0
         for k,v in mmudb:
             if not isinstance(k,unicode):
                 k = k.decode("utf8")
@@ -138,17 +141,24 @@ def mm_scan_dir(path):
             meta = MediaMetaData.get(MediaMetaData.c.sha1sum==sha1 and MediaMetaData.c.size==size)
             if not meta:
                 #log.info("add meta data: size=%s, sha1=%s"%(size,sha1))
-                meta = MediaMetaData(size=size,sha1sum=sha1,ctime=datetime.fromtimestamp(ctime))
+                meta = MediaMetaData(size=size,
+                    sha1sum=sha1,
+                    ctime=datetime.fromtimestamp(ctime),
+                    mtype=MediaMetaData.get_mtype(k)
+                )
                 meta.save()
             mfile = MediaFile.get(and_(MediaFile.c.root==root.id, MediaFile.c.relpath==k))
             if not mfile:
-                log.info("add %s in db"%(k))
+                ncount += 1
+                log.info("add %s in db,%s new files"%(k,ncount))
                 mfile = MediaFile(root=root.id,relpath=k,meta=meta.id)
                 mfile.save()
                 meta.update_dup()
                 meta.save()
+            gevent.sleep(0)
+
         Commit()
-        log2("finished scanning and update '%s'"%(path),finished=True)
+        log2("finished scanning and update '%s', scan %s new files, add %s files in db"%(path,fcount,ncount),finished=True)
 
     gevent.spawn(scan)
     return {"success":True,"msg":"Scan started"}
