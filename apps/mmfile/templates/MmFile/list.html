@@ -9,7 +9,7 @@
 {{use "ui.iview"}}
 <div id="app">
 <page :total="total" :page-size="page_size" :current.sync="current" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
-<i-table border :columns="columns_files" :data="data_files"></i-table>
+<i-table border :columns="columns_files" :data="data_files" @on-sort-change="table_on_sort_change"></i-table>
 <page :total="total" :page-size="page_size" :current.sync="current" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
 </div>
 <script>
@@ -18,13 +18,15 @@ var vm = new Vue({
     data: {
         columns_files : [
             { title: 'Filename', key: 'filename' },
-            { title: 'Create time', key: 'ctime' },
+            { title: 'Create time', key: 'ctime_str', sortable: 'custom' },
             { title: 'Duplicate', key: 'dup' },
         ],
         data_files : [],
         total : 0,
         page_size : 10,
-        current : 1
+        current : 1,
+        sort_key : "",
+        sort_order : ""
     },
     methods : {
         update_list : function(){
@@ -33,10 +35,12 @@ var vm = new Vue({
                 url: "{{=url_for('mmfile.views.MmFile.api_list')}}",
                 data: {
                     page_size:vm.page_size,
-                    current:vm.current
+                    current:vm.current,
+                    sort_key:vm.sort_key,
+                    sort_order:vm.sort_order
                 },
                 success: function (data) {
-                    vm.data_files = data.list
+                    vm.data_files = data.rows
                     vm.total = data.total
                 }
             })
@@ -46,6 +50,11 @@ var vm = new Vue({
         },
         page_on_page_size_change : function(data) {
             vm.page_size = data
+            vm.update_list()
+        },
+        table_on_sort_change : function(data) {
+            vm.sort_key = data.key
+            vm.sort_order = data.order
             vm.update_list()
         }
     }

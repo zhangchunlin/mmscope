@@ -4,7 +4,8 @@ import json as json_
 import os
 import logging
 import time
-from sqlalchemy.sql import and_
+from sqlalchemy.sql import and_, select
+from uliweb.orm import do_
 
 log = logging.getLogger('mmfile')
 
@@ -19,20 +20,31 @@ class MmFile(object):
         current = int(request.values.get("current",1))
         MediaDirRoot = models.mediadirroot
         MediaFile = models.mediafile
+        MediaMetaData = models.mediametadata
+        sort_key = request.values.get("sort_key")
+        sort_order =  request.values.get("sort_order")
 
-        def _get_info(i):
-            d = i.to_dict()
-            d["filename"] = os.path.split(d["relpath"])[-1]
-            meta = i.meta
-            d["ctime"] = meta.ctime.strftime("%Y-%m-%d %H:%M")
-            d["dup"] = meta.dup
-            return d
-        q = MediaFile.filter(and_(MediaFile.c.root==MediaDirRoot.c.id, MediaDirRoot.c.deleted==False))
+        keys = ["id","relpath","size","sha1sum","ctime","dup"]
+        q = select([MediaFile.c.id,MediaFile.c.relpath,
+            MediaMetaData.c.size,MediaMetaData.c.sha1sum,MediaMetaData.c.ctime,MediaMetaData.c.dup])
+        q = q.select_from(MediaFile.table\
+            .join(MediaMetaData.table,MediaFile.c.meta==MediaMetaData.c.id)
+        )
+        total = q.count().execute().scalar()
+        if sort_key and sort_order:
+            if sort_order and (sort_order not in ("asc","desc")):
+                sort_order = "asc"
+            if sort_key=="ctime_str":
+                q = q.order_by(getattr(MediaMetaData.c.ctime,sort_order)())
         q = q.offset((current-1)*page_size)
-        total = q.count()
         q = q.limit(page_size)
-        l = [_get_info(i) for i in q]
-        return json({"list":l,"total":total})
+        rows = [dict(zip(keys,i)) for i in do_(q)]
+        def _get_info(d):
+            d["filename"] = os.path.split(d["relpath"])[-1]
+            d["ctime_str"] = d["ctime"].strftime("%Y-%m-%d %H:%M")
+            return d
+        rows = [_get_info(i) for i in rows]
+        return json({"rows":rows,"total":total})
 
 @expose('/mmdir')
 class MmDir(object):
