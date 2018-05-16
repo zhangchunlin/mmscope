@@ -5,3 +5,4 @@
 -e git+https://github.com/limodou/uliweb-apps#egg=uliweb_apps
 -e git+https://github.com/zhangchunlin/uliweb-comapps#egg=uliweb_comapps
 gevent
+unqlite

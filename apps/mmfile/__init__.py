@@ -145,6 +145,8 @@ def mm_scan_dir(path):
                 log.info("add %s in db"%(k))
                 mfile = MediaFile(root=root.id,relpath=k,meta=meta.id)
                 mfile.save()
+                meta.update_dup()
+                meta.save()
         Commit()
         log2("finished scanning and update '%s'"%(path),finished=True)
 

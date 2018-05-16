@@ -24,7 +24,8 @@ class MmFile(object):
             d = i.to_dict()
             d["filename"] = os.path.split(d["relpath"])[-1]
             meta = i.meta
-            d["ctime"] = str(meta.ctime)
+            d["ctime"] = meta.ctime.strftime("%Y-%m-%d %H:%M")
+            d["dup"] = meta.dup
             return d
         q = MediaFile.filter(and_(MediaFile.c.root==MediaDirRoot.c.id, MediaDirRoot.c.deleted==False))
         q = q.offset((current-1)*page_size)

@@ -19,7 +19,11 @@ class MediaMetaData(Model):
     size = Field(int)
     sha1sum = Field(str, max_length = 64, index=True)
     ctime = Field(datetime.datetime)
+    dup = Field(int,default = 1)
 
     @classmethod
     def OnInit(cls):
         Index('sizesum_indx', cls.c.size, cls.c.sha1sum, unique=True)
+
+    def update_dup(self):
+        dup = MediaFile.filter(MediaFile.c.meta==self.id).count()
