@@ -21,7 +21,26 @@ var vm = new Vue({
     delimiters: ['{', '}'],
     data: {
         columns_files : [
-            { title: 'Filename', key: 'filename' },
+            {
+                title: 'Filename',
+                render: function(h, params){
+                    console.log(params)
+                    return h(
+                        'div',
+                        [
+                            h("Icon",{
+                                props : {
+                                    type: params.row.icon,
+                                    size: "20",
+                                    color: "#330066"
+                                }
+                            }),
+                            " ",
+                            params.row.filename
+                        ]
+                    )
+                }
+            },
             { title: 'Create time', key: 'ctime_str', sortable: 'custom' },
             { title: 'Duplicate', key: 'dup' }
         ],

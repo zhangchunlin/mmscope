@@ -27,9 +27,14 @@ class MmFile(object):
         sort_order =  request.values.get("sort_order")
         select_mtype = int(request.values.get("select_mtype",0))
 
-        keys = ["id","relpath","size","sha1sum","ctime","dup"]
-        q = select([MediaFile.c.id,MediaFile.c.relpath,
-            MediaMetaData.c.size,MediaMetaData.c.sha1sum,MediaMetaData.c.ctime,MediaMetaData.c.dup])
+        keys = ["id","relpath","size","sha1sum","ctime","dup","mtype"]
+        q = select([MediaFile.c.id,
+            MediaFile.c.relpath,
+            MediaMetaData.c.size,
+            MediaMetaData.c.sha1sum,
+            MediaMetaData.c.ctime,
+            MediaMetaData.c.dup,
+            MediaMetaData.c.mtype])
         q = q.select_from(MediaFile.table\
             .join(MediaMetaData.table,MediaFile.c.meta==MediaMetaData.c.id)
         )
@@ -44,9 +49,11 @@ class MmFile(object):
         q = q.offset((current-1)*page_size)
         q = q.limit(page_size)
         rows = [dict(zip(keys,i)) for i in do_(q)]
+        tprops = settings.MMSCOPE.mtypes
         def _get_info(d):
             d["filename"] = os.path.split(d["relpath"])[-1]
             d["ctime_str"] = d["ctime"].strftime("%Y-%m-%d %H:%M")
+            d["icon"] = tprops[d["mtype"]]["icon"]
             return d
         rows = [_get_info(i) for i in rows]
         return json({"rows":rows,"total":total})
