@@ -13,7 +13,9 @@ log = logging.getLogger('mmfile')
 class MmFile(object):
     @expose('')
     def list(self):
-        return {}
+        l = settings.MMSCOPE.mtypes
+        mtype_options = json_.dumps([{"value":0,"label":"All","icon":"document"}]+[{"value":k,"label":l[k]["name"],"icon":l[k]["icon"]}for k in l])
+        return {"mtype_options":mtype_options}
 
     def api_list(self):
         page_size = int(request.values.get("page_size",10))
@@ -23,6 +25,7 @@ class MmFile(object):
         MediaMetaData = models.mediametadata
         sort_key = request.values.get("sort_key")
         sort_order =  request.values.get("sort_order")
+        select_mtype = int(request.values.get("select_mtype",0))
 
         keys = ["id","relpath","size","sha1sum","ctime","dup"]
         q = select([MediaFile.c.id,MediaFile.c.relpath,
@@ -30,6 +33,8 @@ class MmFile(object):
         q = q.select_from(MediaFile.table\
             .join(MediaMetaData.table,MediaFile.c.meta==MediaMetaData.c.id)
         )
+        if select_mtype:
+            q = q.where(MediaMetaData.c.mtype==select_mtype)
         total = q.count().execute().scalar()
         if sort_key and sort_order:
             if sort_order and (sort_order not in ("asc","desc")):

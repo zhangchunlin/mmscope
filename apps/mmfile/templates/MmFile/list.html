@@ -8,6 +8,9 @@
 {{use "ui.vue"}}
 {{use "ui.iview"}}
 <div id="app">
+<i-select v-model="select_mtype" @on-change="select_on_change" style="margin: 6px">
+    <i-option v-for="item in mtype_options" :value="item.value" :key="item.value"><Icon :type="item.icon" size="30" color="blue"></Icon> {item.label}</i-option>
+</i-select>
 <page :total="total" :page-size="page_size" :current.sync="current" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
 <i-table border :columns="columns_files" :data="data_files" @on-sort-change="table_on_sort_change"></i-table>
 <page :total="total" :page-size="page_size" :current.sync="current" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
@@ -15,12 +18,15 @@
 <script>
 var vm = new Vue({
     el: '#app',
+    delimiters: ['{', '}'],
     data: {
         columns_files : [
             { title: 'Filename', key: 'filename' },
             { title: 'Create time', key: 'ctime_str', sortable: 'custom' },
-            { title: 'Duplicate', key: 'dup' },
+            { title: 'Duplicate', key: 'dup' }
         ],
+        select_mtype : 0,
+        mtype_options : {{=mtype_options}},
         data_files : [],
         total : 0,
         page_size : 10,
@@ -37,13 +43,17 @@ var vm = new Vue({
                     page_size:vm.page_size,
                     current:vm.current,
                     sort_key:vm.sort_key,
-                    sort_order:vm.sort_order
+                    sort_order:vm.sort_order,
+                    select_mtype:vm.select_mtype
                 },
                 success: function (data) {
                     vm.data_files = data.rows
                     vm.total = data.total
                 }
             })
+        },
+        select_on_change : function(){
+            vm.update_list()
         },
         page_on_change : function(){
             vm.update_list()
