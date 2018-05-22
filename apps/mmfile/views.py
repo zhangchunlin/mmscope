@@ -62,9 +62,19 @@ class MmFile(object):
         return json({"rows":rows,"total":total})
 
     def img_thumbnail(self):
-        filename = 'photo.jpeg'
-        real_filename = application.get_file('photo.jpeg','static')
-        return filedown(request.environ,filename=filename,real_filename=real_filename)
+        id_ = int(request.values.get("id",0))
+        found = False
+        if id_:
+            MediaDirRoot = models.mediadirroot
+            MediaFile = models.mediafile
+
+            mf = MediaFile.get(id_)
+            filename = mf.get_filename()
+            real_filename = mf.get_fpath()
+        else:
+            filename = 'photo.jpeg'
+            real_filename = application.get_file('photo.jpeg','static')
+        return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
 
 @expose('/mmdir')
 class MmDir(object):

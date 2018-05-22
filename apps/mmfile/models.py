@@ -16,6 +16,12 @@ class MediaFile(Model):
     relpath = Field(str, max_length = 512, nullable=False, index=True)
     meta = Reference("mediametadata", collection_name='file')
 
+    def get_filename(self):
+        return os.path.split(self.relpath)[-1]
+
+    def get_fpath(self):
+        return os.path.join(self.root.path,self.relpath)
+
 class MediaMetaData(Model):
     size = Field(int)
     sha1sum = Field(str, max_length = 64, index=True)

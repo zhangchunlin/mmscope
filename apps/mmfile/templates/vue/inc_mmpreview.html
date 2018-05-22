@@ -7,6 +7,6 @@ Vue.component('mm-preview-image', {
             url : "{{=url_for('mmfile.views.MmFile.img_thumbnail')}}?id="+this.id
         }
     },
-    template: '<img :src="url" width="128">'
+    template: '<img :src="url" width="128" style="margin: 6px;">'
 })
 </script>
