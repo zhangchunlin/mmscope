@@ -1,5 +1,6 @@
 #coding=utf-8
 from uliweb import expose, functions, models
+from uliweb.utils.filedown import filedown
 import json as json_
 import os
 import logging
@@ -53,10 +54,17 @@ class MmFile(object):
         def _get_info(d):
             d["filename"] = os.path.split(d["relpath"])[-1]
             d["ctime_str"] = d["ctime"].strftime("%Y-%m-%d %H:%M")
-            d["icon"] = tprops[d["mtype"]]["icon"]
+            tprop = tprops[d["mtype"]]
+            d["icon"] = tprop["icon"]
+            d["type"] = tprop["type"]
             return d
         rows = [_get_info(i) for i in rows]
         return json({"rows":rows,"total":total})
+
+    def img_thumbnail(self):
+        filename = 'photo.jpeg'
+        real_filename = application.get_file('photo.jpeg','static')
+        return filedown(request.environ,filename=filename,real_filename=real_filename)
 
 @expose('/mmdir')
 class MmDir(object):

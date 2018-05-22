@@ -1,0 +1,12 @@
+<script>
+Vue.component('mm-preview-image', {
+    delimiters: ['{', '}'],
+    props : ["id"],
+    data : function(){
+        return {
+            url : "{{=url_for('mmfile.views.MmFile.img_thumbnail')}}?id="+this.id
+        }
+    },
+    template: '<img :src="url" width="128">'
+})
+</script>

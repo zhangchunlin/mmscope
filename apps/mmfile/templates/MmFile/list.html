@@ -7,6 +7,8 @@
 {{block content_main}}
 {{use "ui.vue"}}
 {{use "ui.iview"}}
+
+{{include "vue/inc_mmpreview.html"}}
 <div id="app">
 <i-select v-model="select_mtype" @on-change="select_on_change" style="margin: 6px">
     <i-option v-for="item in mtype_options" :value="item.value" :key="item.value"><Icon :type="item.icon" size="30" color="blue"></Icon> {item.label}</i-option>
@@ -24,7 +26,6 @@ var vm = new Vue({
             {
                 title: 'Filename',
                 render: function(h, params){
-                    console.log(params)
                     return h(
                         'div',
                         [
@@ -38,6 +39,20 @@ var vm = new Vue({
                             " ",
                             params.row.filename
                         ]
+                    )
+                }
+            },
+            {
+                title: 'Preview',
+                render: function(h,params){
+                    var mtype = params.row.mtype;
+                    return h(
+                        'mm-preview-'+params.row.type,
+                        {
+                            props : {
+                                id: params.row.id
+                            }
+                        }
                     )
                 }
             },
