@@ -7,7 +7,7 @@ Vue.component('mm-preview-image', {
             url : "{{=url_for('mmfile.views.MmFile.img_thumbnail')}}?id="+this.id
         }
     },
-    template: '<img :src="url" width="128" style="margin: 6px;">'
+    template: '<img :src="url" width="256" style="margin: 6px;">'
 })
 
 Vue.component('mm-preview-audio', {
@@ -20,5 +20,17 @@ Vue.component('mm-preview-audio', {
         }
     },
     template: '<audio controls="controls"><source :src="url" :type="type" />Your browser does  not support this audio format.</audio>'
+})
+
+Vue.component('mm-preview-video', {
+    delimiters: ['{', '}'],
+    props : ["id","mimetype"],
+    data : function(){
+        return {
+            url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
+            type : this.mimetype
+        }
+    },
+    template: '<video controls="controls" width="256"><source :src="url" :type="type" />Your browser does  not support this video tag.</video>'
 })
 </script>
