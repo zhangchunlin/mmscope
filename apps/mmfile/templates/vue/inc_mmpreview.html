@@ -1,12 +1,24 @@
 <script>
 Vue.component('mm-preview-image', {
     delimiters: ['{', '}'],
-    props : ["id"],
+    props : ["id","mimetype"],
     data : function(){
         return {
             url : "{{=url_for('mmfile.views.MmFile.img_thumbnail')}}?id="+this.id
         }
     },
     template: '<img :src="url" width="128" style="margin: 6px;">'
+})
+
+Vue.component('mm-preview-audio', {
+    delimiters: ['{', '}'],
+    props : ["id","mimetype"],
+    data : function(){
+        return {
+            url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
+            type : this.mimetype
+        }
+    },
+    template: '<audio controls="controls"><source :src="url" :type="type" />Your browser does  not support this audio format.</audio>'
 })
 </script>

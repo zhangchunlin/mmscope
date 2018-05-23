@@ -1,11 +1,13 @@
 #coding=utf-8
-from uliweb import expose, functions, models
-from uliweb.utils.filedown import filedown
+
 import json as json_
 import os
 import logging
 import time
+from mimetypes import guess_type
 from sqlalchemy.sql import and_, select
+from uliweb import expose, functions, models
+from uliweb.utils.filedown import filedown
 from uliweb.orm import do_
 
 log = logging.getLogger('mmfile')
@@ -52,11 +54,13 @@ class MmFile(object):
         rows = [dict(zip(keys,i)) for i in do_(q)]
         tprops = settings.MMSCOPE.mtypes
         def _get_info(d):
-            d["filename"] = os.path.split(d["relpath"])[-1]
+            filename = os.path.split(d["relpath"])[-1]
+            d["filename"] = filename
             d["ctime_str"] = d["ctime"].strftime("%Y-%m-%d %H:%M")
             tprop = tprops[d["mtype"]]
             d["icon"] = tprop["icon"]
             d["type"] = tprop["type"]
+            d["mimetype"] = guess_type(filename)[0]
             return d
         rows = [_get_info(i) for i in rows]
         return json({"rows":rows,"total":total})
@@ -75,6 +79,18 @@ class MmFile(object):
             filename = 'photo.jpeg'
             real_filename = application.get_file('photo.jpeg','static')
         return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
+
+    def filedown(self):
+        id_ = int(request.values.get("id",0))
+        if id_:
+            MediaDirRoot = models.mediadirroot
+            MediaFile = models.mediafile
+
+            mf = MediaFile.get(id_)
+            filename = mf.get_filename()
+            real_filename = mf.get_fpath()
+            return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
+        return NotFound
 
 @expose('/mmdir')
 class MmDir(object):
