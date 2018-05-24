@@ -13,9 +13,9 @@
 <i-select v-model="select_mtype" @on-change="select_on_change" style="margin: 6px">
     <i-option v-for="item in mtype_options" :value="item.value" :key="item.value"><Icon :type="item.icon" size="30" color="blue"></Icon> {item.label}</i-option>
 </i-select>
-<page :total="total" :page-size="page_size" :current.sync="current" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
+<page :total="total" :page-size="page_size" :current.sync="current" :page-size-opts="[10, 20, 50, 100]" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
 <i-table border :columns="columns_files" :data="data_files" @on-sort-change="table_on_sort_change"></i-table>
-<page :total="total" :page-size="page_size" :current.sync="current" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
+<page :total="total" :page-size="page_size" :current.sync="current" :page-size-opts="[10, 20, 50, 100]" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
 </div>
 <script>
 var vm = new Vue({
