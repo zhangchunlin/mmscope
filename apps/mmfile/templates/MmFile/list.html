@@ -58,7 +58,28 @@ var vm = new Vue({
                 }
             },
             { title: 'Create time', key: 'ctime_str', sortable: 'custom' },
-            { title: 'Duplicate', key: 'dup' }
+            {
+                title: 'Duplicate',
+                render: function(h,params){
+                    return h(
+                        'div',
+                        [
+                            params.row.dup,
+                            " ",
+                            h("span",
+                                {
+                                    style: {
+                                        color: '#C0C0C0'
+                                    }
+                                },
+                                [
+                                    params.row.sha1_pstr
+                                ]
+                            )
+                        ]
+                    )
+                }
+            }
         ],
         select_mtype : 0,
         mtype_options : {{=mtype_options}},

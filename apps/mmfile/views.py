@@ -61,6 +61,7 @@ class MmFile(object):
             d["icon"] = tprop["icon"]
             d["type"] = tprop["type"]
             d["mimetype"] = guess_type(filename)[0]
+            d["sha1_pstr"] = d["sha1sum"][:8]
             return d
         rows = [_get_info(i) for i in rows]
         return json({"rows":rows,"total":total})
