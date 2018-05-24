@@ -154,7 +154,6 @@ def mm_scan_dir(path):
                 mfile = MediaFile(root=root.id,relpath=k,meta=meta.id)
                 mfile.save()
                 meta.update_dup()
-                meta.save()
             gevent.sleep(0)
 
         Commit()

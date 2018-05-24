@@ -48,8 +48,10 @@ class MediaMetaData(Model):
     def OnInit(cls):
         Index('sizesum_indx', cls.c.size, cls.c.sha1sum, unique=True)
 
-    def update_dup(self):
-        dup = MediaFile.filter(MediaFile.c.meta==self.id).count()
+    def update_dup(self,save=True):
+        self.dup = MediaFile.filter(MediaFile.c.meta==self.id).count()
+        if save:
+            self.save()
 
     @classmethod
     def get_mtype(cls,path):
