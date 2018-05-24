@@ -8,7 +8,7 @@ from mimetypes import guess_type
 from sqlalchemy.sql import and_, select
 from uliweb import expose, functions, models
 from uliweb.utils.filedown import filedown
-from uliweb.orm import do_
+from uliweb.orm import do_, and_
 
 log = logging.getLogger('mmfile')
 
@@ -16,6 +16,8 @@ log = logging.getLogger('mmfile')
 class MmFile(object):
     @expose('')
     def list(self):
+        MediaDirRoot = models.mediadirroot
+        for i in MediaDirRoot.all():i.update_mounted()
         l = settings.MMSCOPE.mtypes
         mtype_options = json_.dumps([{"value":0,"label":"All","icon":"document"}]+[{"value":k,"label":l[k]["name"],"icon":l[k]["icon"]}for k in l])
         return {"mtype_options":mtype_options}
@@ -42,7 +44,7 @@ class MmFile(object):
         ])
         q = q.select_from(MediaFile.table\
             .join(MediaMetaData.table,MediaFile.c.meta==MediaMetaData.c.id)\
-            .join(MediaDirRoot.table,MediaFile.c.root==MediaDirRoot.c.id)
+            .join(MediaDirRoot.table,and_(MediaFile.c.root==MediaDirRoot.c.id,MediaDirRoot.c.mounted==True))
         )
         if select_mtype:
             q = q.where(MediaMetaData.c.mtype==select_mtype)
@@ -103,6 +105,7 @@ class MmDir(object):
         self.path = request.values.get("path")
         if self.path:
             self.MediaDirRoot = models.mediadirroot
+
     @expose('')
     def list(self):
         root_dirs = json_.dumps(functions.mm_root_dirs())
@@ -111,10 +114,7 @@ class MmDir(object):
     def api_list(self):
         MediaDirRoot = models.mediadirroot
         def _get_info(i):
-            mounted = os.path.isdir(i.path)
-            if mounted!=i.mounted:
-                i.mounted = mounted
-                i.save()
+            i.update_mounted()
             return i.to_dict()
         l = [_get_info(i) for i in MediaDirRoot.filter(MediaDirRoot.c.deleted==False)]
         return json({"list":l})

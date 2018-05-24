@@ -11,6 +11,16 @@ class MediaDirRoot(Model):
     scantime = Field(datetime.datetime)
     props = Field(JSON, default={})
 
+    def update_mounted(self,save=True):
+        mounted = os.path.isdir(self.path)
+        if mounted:
+            if os.path.isfile(os.path.join(self.path,"_mm_ignore")):
+                mounted = False
+        if mounted!=self.mounted:
+            self.mounted = mounted
+            if save:
+                self.save()
+
 class MediaFile(Model):
     root = Reference("mediadirroot")
     relpath = Field(str, max_length = 512, nullable=False, index=True)
