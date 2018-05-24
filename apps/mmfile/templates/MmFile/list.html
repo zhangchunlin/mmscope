@@ -64,8 +64,8 @@ var vm = new Vue({
                     )
                 }
             },
-            { title: 'Create time', key: 'ctime_str', sortable: 'custom' },
-            { title: 'Size', key: 'size', sortable: 'custom' },
+            { title: 'Create time', key: 'ctime_str', sortable: 'custom', width: "150px" },
+            { title: 'Size', key: 'size', sortable: 'custom', width: "100px" },
             {
                 title: 'Duplicate',
                 key: 'dup',
@@ -88,7 +88,8 @@ var vm = new Vue({
                         ]
                     )
                 },
-                sortable: 'custom'
+                sortable: 'custom',
+                width: "120px"
             }
         ],
         select_mtype : 0,
