@@ -54,6 +54,10 @@ class MmFile(object):
                 sort_order = "asc"
             if sort_key=="ctime_str":
                 q = q.order_by(getattr(MediaMetaData.c.ctime,sort_order)())
+            elif sort_key=="dup":
+                q = q.order_by(getattr(MediaMetaData.c.dup,sort_order)())
+            elif sort_key=="size":
+                q = q.order_by(getattr(MediaMetaData.c.size,sort_order)())
         q = q.offset((current-1)*page_size)
         q = q.limit(page_size)
         rows = [dict(zip(keys,i)) for i in do_(q)]
