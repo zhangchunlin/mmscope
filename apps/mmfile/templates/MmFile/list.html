@@ -37,7 +37,14 @@ var vm = new Vue({
                                 }
                             }),
                             " ",
-                            params.row.filename
+                            h("span",
+                                {
+                                    attrs : {
+                                        title: params.row.full_path
+                                    }
+                                },
+                                [params.row.filename]
+                            )
                         ]
                     )
                 }

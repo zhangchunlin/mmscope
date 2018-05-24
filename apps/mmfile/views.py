@@ -30,16 +30,19 @@ class MmFile(object):
         sort_order =  request.values.get("sort_order")
         select_mtype = int(request.values.get("select_mtype",0))
 
-        keys = ["id","relpath","size","sha1sum","ctime","dup","mtype"]
+        keys = ["id","relpath","size","sha1sum","ctime","dup","mtype","rootpath"]
         q = select([MediaFile.c.id,
             MediaFile.c.relpath,
             MediaMetaData.c.size,
             MediaMetaData.c.sha1sum,
             MediaMetaData.c.ctime,
             MediaMetaData.c.dup,
-            MediaMetaData.c.mtype])
+            MediaMetaData.c.mtype,
+            MediaDirRoot.c.path,
+        ])
         q = q.select_from(MediaFile.table\
-            .join(MediaMetaData.table,MediaFile.c.meta==MediaMetaData.c.id)
+            .join(MediaMetaData.table,MediaFile.c.meta==MediaMetaData.c.id)\
+            .join(MediaDirRoot.table,MediaFile.c.root==MediaDirRoot.c.id)
         )
         if select_mtype:
             q = q.where(MediaMetaData.c.mtype==select_mtype)
@@ -62,6 +65,7 @@ class MmFile(object):
             d["type"] = tprop["type"]
             d["mimetype"] = guess_type(filename)[0]
             d["sha1_pstr"] = d["sha1sum"][:8]
+            d["full_path"] = os.path.join(d["rootpath"],d["relpath"])
             return d
         rows = [_get_info(i) for i in rows]
         return json({"rows":rows,"total":total})
