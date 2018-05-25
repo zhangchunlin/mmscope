@@ -7,6 +7,7 @@
 {{block content_main}}
 {{use "ui.vue"}}
 {{use "ui.iview"}}
+{{use "ui.jquery_cookie"}}
 
 {{include "vue/inc_mmpreview.html"}}
 <div id="app">
@@ -92,11 +93,11 @@ var vm = new Vue({
                 width: "120px"
             }
         ],
-        select_mtype : 0,
+        select_mtype : parseInt($.cookie('select_mtype')) || 0,
         mtype_options : {{=mtype_options}},
         data_files : [],
         total : 0,
-        page_size : 10,
+        page_size : parseInt($.cookie('page_size')) || 10,
         current : 1,
         sort_key : "",
         sort_order : ""
@@ -120,6 +121,7 @@ var vm = new Vue({
             })
         },
         select_on_change : function(){
+            $.cookie('select_mtype', vm.select_mtype, { path: '/mmfile' });
             vm.update_list()
         },
         page_on_change : function(){
@@ -127,6 +129,7 @@ var vm = new Vue({
         },
         page_on_page_size_change : function(data) {
             vm.page_size = data
+            $.cookie('page_size', vm.page_size, { path: '/mmfile' });
             vm.update_list()
         },
         table_on_sort_change : function(data) {
