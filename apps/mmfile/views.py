@@ -86,13 +86,20 @@ class MmFile(object):
             mf = MediaFile.get(id_)
             filename = mf.get_filename()
             real_filename = mf.get_fpath()
-        else:
+
+            if os.path.isfile(real_filename):
+                found = True
+
+        if not found:
             filename = 'photo.jpeg'
             real_filename = application.get_file('photo.jpeg','static')
+
         return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
+
 
     def filedown(self):
         id_ = int(request.values.get("id",0))
+        found = False
         if id_:
             MediaDirRoot = models.mediadirroot
             MediaFile = models.mediafile
@@ -100,8 +107,14 @@ class MmFile(object):
             mf = MediaFile.get(id_)
             filename = mf.get_filename()
             real_filename = mf.get_fpath()
-            return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
-        return NotFound
+            if os.path.isfile(real_filename):
+                found = True
+
+        if not found:
+            filename = 'media.jpeg'
+            real_filename = application.get_file('media.jpeg','static')
+
+        return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
 
 @expose('/mmdir')
 class MmDir(object):
