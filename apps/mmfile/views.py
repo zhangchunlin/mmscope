@@ -76,27 +76,6 @@ class MmFile(object):
         rows = [_get_info(i) for i in rows]
         return json({"rows":rows,"total":total})
 
-    def img_thumbnail(self):
-        id_ = int(request.values.get("id",0))
-        found = False
-        if id_:
-            MediaDirRoot = models.mediadirroot
-            MediaFile = models.mediafile
-
-            mf = MediaFile.get(id_)
-            filename = mf.get_filename()
-            real_filename = mf.get_fpath()
-
-            if os.path.isfile(real_filename):
-                found = True
-
-        if not found:
-            filename = 'photo.jpeg'
-            real_filename = application.get_file('photo.jpeg','static')
-
-        return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
-
-
     def filedown(self):
         id_ = int(request.values.get("id",0))
         found = False
