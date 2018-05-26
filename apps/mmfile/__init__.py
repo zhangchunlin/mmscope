@@ -117,6 +117,7 @@ def mm_scan_dir(path):
                             fcount += 1
                             log2("%s: %s scanned"%(path,rel_fpath))
                             gevent.sleep(0)
+                        udb[fpath]=True
         finally:
             log2("%s scan finished"%(path))
             udb["scanning"] = 'false'
@@ -155,7 +156,13 @@ def mm_scan_dir(path):
                 mfile.save()
                 meta.update_dup()
             gevent.sleep(0)
-
+        for mf in MediaFile.filter(MediaFile.c.root==root.id):
+            fpath = os.path.join(root.path,mf.relpath)
+            deleted = not udb.exists(fpath) and not os.path.isfile(fpath)
+            if deleted!=mf.deleted:
+                log2("'%s' update deleted: %s -> %s"%(fpath,mf.deleted,deleted))
+                mf.deleted = deleted
+                mf.save()
         Commit()
         log2("finished scanning and update '%s', scan %s new files, add %s files in db"%(path,fcount,ncount),finished=True)
 

@@ -46,6 +46,7 @@ class MmFile(object):
             .join(MediaMetaData.table,MediaFile.c.meta==MediaMetaData.c.id)\
             .join(MediaDirRoot.table,and_(MediaFile.c.root==MediaDirRoot.c.id,MediaDirRoot.c.mounted==True))
         )
+        q = q.where(MediaFile.c.deleted==False)
         if select_mtype:
             q = q.where(MediaMetaData.c.mtype==select_mtype)
         total = q.count().execute().scalar()
