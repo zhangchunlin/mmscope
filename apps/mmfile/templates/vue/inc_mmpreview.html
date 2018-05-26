@@ -1,3 +1,6 @@
+<style type="text/css">
+    .divlim img{max-width:100%}
+</style>
 <script>
 Vue.component('mm-preview-image', {
     delimiters: ['{', '}'],
@@ -11,7 +14,7 @@ Vue.component('mm-preview-image', {
         }
     },
     template: `<span>
-        <modal :title="filename" v-model="modal_full" class-name="vertical-center-modal" width="auto" style="text-align:center;vertical-align:middle;">
+        <modal :title="filename" v-model="modal_full" class-name="vertical-center-modal" width="auto" style="text-align:center;vertical-align:middle;" class="divlim">
             {fullpath}<br/>
             <img :src="url" style="margin: 6px;">
         </modal>
