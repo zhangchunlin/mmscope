@@ -1,13 +1,22 @@
 <script>
 Vue.component('mm-preview-image', {
     delimiters: ['{', '}'],
-    props : ["id","mimetype"],
+    props : ["id","mimetype","filename","fullpath"],
     data : function(){
         return {
-            url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id
+            url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
+            modal_full : false,
+            filename : this.filename,
+            fullpath : this.fullpath
         }
     },
-    template: '<img :src="url" width="256" style="margin: 6px;">'
+    template: `<span>
+        <modal :title="filename" v-model="modal_full" class-name="vertical-center-modal" width="auto" style="text-align:center;vertical-align:middle;">
+            {fullpath}
+            <img :src="url" style="margin: 6px;">
+        </modal>
+        <img :src="url" width="256" @click="modal_full=true" style="margin: 6px;">
+    </span>`
 })
 
 Vue.component('mm-preview-audio', {
