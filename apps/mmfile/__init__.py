@@ -7,7 +7,7 @@ import logging
 from pickle import dumps as pickle_dumps, loads as pickle_loads
 from datetime import datetime
 from sqlalchemy.sql import and_
-
+import gevent
 
 log = logging.getLogger('mmfile')
 
@@ -75,17 +75,19 @@ def _get_file_info(fpath):
     st = os.stat(fpath)
     return {"size":st.st_size,"ctime":st.st_ctime,"sha1":h.hexdigest()}
 
-def mm_scan_dir(path):
-    from uliweb import settings, functions, models
-    from uliweb.orm import Begin,Commit
-    import gevent
+class Scanner(object):
+    def __init__(self,path):
+        from uliweb import functions
+        self.udb = functions.get_unqlite(name="mem")
+        self.path = path
 
-    udb = functions.get_unqlite(name="mem")
-    if ('scanning' in udb) and udb["scanning"]=='true':
-        log.info("already scanning,cancel")
-        return {"success":False,"msg":"already scanning,please wait until finished"}
+    def _scan(self):
+        from uliweb import settings, functions, models
+        from uliweb.orm import Begin,Commit
 
-    def scan():
+        udb = self.udb
+        path = self.path
+
         gevent.sleep(0)
         if 'scanning' in udb and udb["scanning"]=='true':
             log.error("already scanning, cancel")
@@ -116,7 +118,7 @@ def mm_scan_dir(path):
                             mmudb[rel_fpath] = pickle_dumps(info)
                             fcount += 1
                             log2("%s: %s scanned"%(path,rel_fpath))
-                            gevent.sleep(0)
+                            gevent.sleep(0.001)
                         udb[fpath]=True
         finally:
             log2("%s scan finished"%(path))
@@ -155,7 +157,7 @@ def mm_scan_dir(path):
                 mfile = MediaFile(root=root.id,relpath=k,meta=meta.id)
                 mfile.save()
                 meta.update_dup()
-            gevent.sleep(0)
+            gevent.sleep(0.001)
         for mf in MediaFile.filter(MediaFile.c.root==root.id):
             fpath = os.path.join(root.path,mf.relpath)
             deleted = not udb.exists(fpath) and not os.path.isfile(fpath)
@@ -166,5 +168,13 @@ def mm_scan_dir(path):
         Commit()
         log2("finished scanning and update '%s', scan %s new files, add %s files in db"%(path,fcount,ncount),finished=True)
 
-    gevent.spawn(scan)
-    return {"success":True,"msg":"Scan started"}
+    def scan(self):
+        if ('scanning' in self.udb) and self.udb["scanning"]=='true':
+            log.info("already scanning,cancel")
+            return {"success":False,"msg":"already scanning,please wait until finished"}
+        gevent.spawn(self._scan)
+        return {"success":True,"msg":"Scan started"}
+
+def mm_scan_dir(path):
+    o = Scanner(path)
+    return o.scan()

@@ -6,3 +6,6 @@
 -e git+https://github.com/zhangchunlin/uliweb-comapps#egg=uliweb_comapps
 gevent
 unqlite
+#https://stackoverflow.com/questions/34631806/fail-during-installation-of-pillow-python-module-in-linux
+#apt-get install libjpeg-dev
+pillow

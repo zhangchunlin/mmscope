@@ -170,5 +170,5 @@ def api_log():
         count += 1
         if count>10:
             break
-        sleep(0.2)
+        sleep(0.1)
     return json({})
