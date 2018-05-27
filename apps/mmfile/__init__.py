@@ -4,10 +4,12 @@ import os
 import platform
 import hashlib
 import logging
+import time
 from pickle import dumps as pickle_dumps, loads as pickle_loads
 from datetime import datetime
 from sqlalchemy.sql import and_
 import gevent
+from PIL import Image
 
 log = logging.getLogger('mmfile')
 
@@ -64,25 +66,50 @@ def mm_dir_children(path):
         return l
     return []
 
-BLOCKSIZE = 10*1024*1024
-def _get_file_info(fpath):
-    h = hashlib.sha1()
-    with open(fpath, 'rb') as f:
-        buf = f.read(BLOCKSIZE)
-        while len(buf) > 0:
-            h.update(buf)
-            buf = f.read(BLOCKSIZE)
-    st = os.stat(fpath)
-    return {"size":st.st_size,"ctime":st.st_ctime,"sha1":h.hexdigest()}
 
 class Scanner(object):
     def __init__(self,path):
-        from uliweb import functions
+        from uliweb import functions, settings
         self.udb = functions.get_unqlite(name="mem")
         self.path = path
+        self.BLOCKSIZE = 10*1024*1024
+        scan_exts = settings.MMSCOPE.scan_exts
+        self.ext_set = set(scan_exts.keys())
+        self.image_ext_set = set([ext for ext in self.ext_set if scan_exts[ext]==1])
+        #https://github.com/python-pillow/Pillow/blob/master/src/PIL/ExifTags.py
+        self.exif_keys = [0x0132,0x9003,0x9004]
+
+    def _get_file_info(self,fpath,ext):
+        h = hashlib.sha1()
+        with open(fpath, 'rb') as f:
+            buf = f.read(self.BLOCKSIZE)
+            while len(buf) > 0:
+                h.update(buf)
+                buf = f.read(self.BLOCKSIZE)
+        st = os.stat(fpath)
+        return {"size":st.st_size,"ctime":st.st_ctime,"sha1":h.hexdigest()}
+
+    def _get_image_exif_ctime(self,fpath):
+        img = Image.open(fpath)
+        try:
+            d = img._getexif()
+        except AttributeError as e:
+            log.error("'%s' error: %s"%(fpath,e))
+            return None
+        if d:
+            timestr = ""
+
+            for k in self.exif_keys:
+                if d.has_key(k):
+                    try:
+                        timestr = d[k]
+                        return time.mktime(time.strptime(timestr, "%Y:%m:%d %H:%M:%S"))
+                    except ValueError as e:
+                        log.error("'%s' error: %s"%(fpath,e))
+        return None
 
     def _scan(self):
-        from uliweb import settings, functions, models
+        from uliweb import functions, models
         from uliweb.orm import Begin,Commit
 
         udb = self.udb
@@ -103,18 +130,30 @@ class Scanner(object):
         try:
             udb["scanning"] = 'true'
             log2("begin to scan %s"%(path))
-            ext_set = set(settings.MMSCOPE.scan_exts.keys())
+
             mmudb = functions.get_unqlite(path=os.path.join(path,"_mm.udb"))
             with mmudb.transaction():
+                ext_set = self.ext_set
                 for root,dnames,fnames in os.walk(path):
                     for fname in fnames:
                         _, ext = os.path.splitext(fname)
-                        if ext.lower() not in ext_set:
+                        ext = ext.lower()
+                        if ext not in ext_set:
                             break
                         fpath = os.path.join(root,fname)
                         rel_fpath = os.path.relpath(fpath,path)
+                        info = None
+                        need_update = False
                         if not mmudb.exists(rel_fpath):
-                            info = _get_file_info(fpath)
+                            info = self._get_file_info(fpath,ext)
+                            need_update = True
+                        else:
+                            if ext in self.image_ext_set:
+                                info = pickle_loads(mmudb[rel_fpath])
+                                if not info.has_key("ctime_exif"):
+                                    info["ctime_exif"] = self._get_image_exif_ctime(fpath)
+                                    need_update = True
+                        if info and need_update:
                             mmudb[rel_fpath] = pickle_dumps(info)
                             fcount += 1
                             log2("%s: %s scanned"%(path,rel_fpath))
@@ -150,6 +189,14 @@ class Scanner(object):
                     mtype=MediaMetaData.get_mtype(k)
                 )
                 meta.save()
+            else:
+                if d.has_key("ctime_exif"):
+                    ctime = d["ctime_exif"]
+                if ctime:
+                    dt = datetime.fromtimestamp(ctime)
+                    if meta.ctime!=dt:
+                        meta.ctime = dt
+                        meta.save()
             mfile = MediaFile.get(and_(MediaFile.c.root==root.id, MediaFile.c.relpath==k))
             if not mfile:
                 ncount += 1
