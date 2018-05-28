@@ -212,6 +212,7 @@ class Scanner(object):
                 log2("'%s' update deleted: %s -> %s"%(fpath,mf.deleted,deleted))
                 mf.deleted = deleted
                 mf.save()
+                mf.meta.update_dup()
         Commit()
         log2("finished scanning and update '%s', scan %s new files, add %s files in db"%(path,fcount,ncount),finished=True)
 

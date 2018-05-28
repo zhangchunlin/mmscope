@@ -2,6 +2,9 @@
 from uliweb.orm import *
 from uliweb import models
 import os
+import logging
+
+log = logging.getLogger('mmfile')
 
 class MediaDirRoot(Model):
     path = Field(str, max_length = 512, nullable=False, index=True)
@@ -50,7 +53,8 @@ class MediaMetaData(Model):
         Index('sizesum_indx', cls.c.size, cls.c.sha1sum, unique=True)
 
     def update_dup(self,save=True):
-        self.dup = MediaFile.filter(MediaFile.c.meta==self.id).count()
+        self.dup = MediaFile.filter(MediaFile.c.meta==self.id).filter(MediaFile.c.deleted==False).count()
+        log.info("update %s with dup: %s"%(self.sha1sum, self.dup))
         if save:
             self.save()
 
