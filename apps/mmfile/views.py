@@ -96,6 +96,24 @@ class MmFile(object):
 
         return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
 
+    def api_files(self):
+        sha1 = request.values.get("sha1")
+        if sha1:
+            MediaFile = models.mediafile
+            MediaMetaData = models.mediametadata
+            q = MediaFile.filter(and_(MediaFile.c.meta==MediaMetaData.c.id,MediaMetaData.c.sha1sum==sha1))
+            q = q.filter(MediaFile.c.deleted==False)
+            def _get_info(i):
+                d = i.to_dict()
+                rootpath = i.root.path
+                relpath = d["relpath"]
+                if not isinstance(relpath,unicode):
+                    relpath = relpath.decode(settings.GLOBAL.FILESYSTEM_ENCODING)
+                d["full_path"] = os.path.join(rootpath,relpath)
+                return d
+            return json({"list":[_get_info(i) for i in q]})
+        return json({"list":[]})
+
 @expose('/mmdir')
 class MmDir(object):
     def __begin__(self):

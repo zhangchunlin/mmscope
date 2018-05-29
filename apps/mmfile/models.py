@@ -1,6 +1,5 @@
 #coding=utf-8
 from uliweb.orm import *
-from uliweb import models
 import os
 import logging
 

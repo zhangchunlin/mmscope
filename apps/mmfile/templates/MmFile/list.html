@@ -78,15 +78,13 @@ var vm = new Vue({
                         [
                             params.row.dup,
                             " ",
-                            h("span",
+                            h("mm-preview-dup",
                                 {
-                                    style: {
-                                        color: '#C0C0C0'
+                                    props: {
+                                        sha1: params.row.sha1sum,
+                                        sha1_pstr: params.row.sha1_pstr
                                     }
-                                },
-                                [
-                                    params.row.sha1_pstr
-                                ]
+                                }
                             )
                         ]
                     )

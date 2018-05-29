@@ -45,4 +45,43 @@ Vue.component('mm-preview-video', {
     },
     template: '<video controls="controls" width="256"><source :src="url" :type="type" />Your browser does  not support this video tag.</video>'
 })
+
+Vue.component('mm-preview-dup', {
+    delimiters: ['{', '}'],
+    props : ["sha1","sha1_pstr"],
+    data : function(){
+        return {
+            sha1 : this.sha1,
+            sha1_pstr : this.sha1_pstr,
+            title : "file(s) with same sha1: "+this.sha1,
+            list : [],
+            modal_show : false
+        }
+    },
+    methods : {
+        show : function() {
+            var thisp = this
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.MmFile.api_files')}}",
+                data: {
+                    sha1 : thisp.sha1
+                },
+                success: function (data) {
+                    thisp.list = data.list
+                    thisp.modal_show = true
+                }
+            })
+        }
+    },
+    template: `<span style="color:#C0C0C0">
+        <modal v-model="modal_show" :title=title>
+            <li v-for="i in list">
+              { i.full_path }
+            </li>
+        </modal>
+        <span @click="show">{sha1_pstr}</span>
+    </span>`
+})
+
 </script>
