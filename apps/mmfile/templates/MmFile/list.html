@@ -11,9 +11,18 @@
 
 {{include "vue/inc_mmpreview.html"}}
 <div id="app">
-<i-select v-model="select_mtype" @on-change="select_on_change" style="margin: 6px">
-    <i-option v-for="item in mtype_options" :value="item.value" :key="item.value"><Icon :type="item.icon" size="30" color="blue"></Icon> {item.label}</i-option>
-</i-select>
+<Row>
+    <i-col span="12">
+        <i-select v-model="select_mtype" @on-change="select_mtype_on_change" style="margin: 6px">
+            <i-option v-for="item in mtype_options" :value="item.value" :key="item.value"><Icon :type="item.icon" size="30" color="blue"></Icon> {item.label}</i-option>
+        </i-select>
+    </i-col>
+    <i-col span="12">
+        <i-select v-model="select_rdir" @on-change="select_rdir_on_change" style="margin: 6px">
+            <i-option v-for="item in rdir_options" :value="item.value" :key="item.value"> {item.label}</i-option>
+        </i-select>
+    </i-col>
+</Row>
 <page :total="total" :page-size="page_size" :current.sync="current" :page-size-opts="[10, 20, 50, 100]" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
 <i-table border :columns="columns_files" :data="data_files" @on-sort-change="table_on_sort_change"></i-table>
 <page :total="total" :page-size="page_size" :current.sync="current" :page-size-opts="[10, 20, 50, 100]" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
@@ -95,6 +104,10 @@ var vm = new Vue({
         ],
         select_mtype : parseInt($.cookie('select_mtype')) || 0,
         mtype_options : {{=mtype_options}},
+
+        select_rdir : parseInt($.cookie('select_rdir')) || 0,
+        rdir_options : {{=rdir_options}},
+
         data_files : [],
         total : 0,
         page_size : parseInt($.cookie('page_size')) || 10,
@@ -112,7 +125,8 @@ var vm = new Vue({
                     current:vm.current,
                     sort_key:vm.sort_key,
                     sort_order:vm.sort_order,
-                    select_mtype:vm.select_mtype
+                    select_mtype:vm.select_mtype,
+                    select_rdir:vm.select_rdir
                 },
                 success: function (data) {
                     vm.data_files = data.rows
@@ -120,8 +134,12 @@ var vm = new Vue({
                 }
             })
         },
-        select_on_change : function(){
+        select_mtype_on_change : function(){
             $.cookie('select_mtype', vm.select_mtype, { path: '/mmfile' });
+            vm.update_list()
+        },
+        select_rdir_on_change : function(){
+            $.cookie('select_rdir', vm.select_rdir, { path: '/mmfile' });
             vm.update_list()
         },
         page_on_change : function(){
