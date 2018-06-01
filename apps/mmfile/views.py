@@ -4,11 +4,14 @@ import json as json_
 import os
 import logging
 import time
+from StringIO import StringIO
 from mimetypes import guess_type
 from sqlalchemy.sql import and_, select
 from uliweb import expose, functions, models
 from uliweb.utils.filedown import filedown
 from uliweb.orm import do_, and_
+from PIL import Image
+from werkzeug import Response
 
 log = logging.getLogger('mmfile')
 
@@ -79,6 +82,7 @@ class MmFile(object):
 
     def filedown(self):
         id_ = int(request.values.get("id",0))
+        type = request.values.get("type")
         found = False
         if id_:
             MediaDirRoot = models.mediadirroot
@@ -91,8 +95,16 @@ class MmFile(object):
                 found = True
 
         if not found:
-            filename = 'media.jpeg'
-            real_filename = application.get_file('media.jpeg','static')
+            return NotFound
+
+        if type=="imgthum":
+            i = Image.open(real_filename)
+            w,h = i.size
+            i.resize((128,(h*128)/w))
+            o = StringIO()
+            i.save(o,format="JPEG")
+            return Response(o.getvalue(), status=200, headers=[(('Content-Type', 'image/jpeg'))],
+                    direct_passthrough=True)
 
         return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
 
@@ -187,6 +199,7 @@ def api_log():
             return json({"log":i})
         count += 1
         if count>10:
+            log.info("try 10 times and fail to get log")
             break
         sleep(0.1)
     return json({})

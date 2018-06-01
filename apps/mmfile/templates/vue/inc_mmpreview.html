@@ -7,7 +7,7 @@ Vue.component('mm-preview-image', {
     props : ["id","mimetype","filename","fullpath"],
     data : function(){
         return {
-            url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
+            url : "{{=url_for('mmfile.views.MmFile.filedown')}}?type=imgthum&id="+this.id,
             modal_full : false,
             filename : this.filename,
             fullpath : this.fullpath

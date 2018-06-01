@@ -135,29 +135,33 @@ class Scanner(object):
             with mmudb.transaction():
                 ext_set = self.ext_set
                 for root,dnames,fnames in os.walk(path):
+                    log.info("scan %s"%(root))
                     for fname in fnames:
                         _, ext = os.path.splitext(fname)
                         ext = ext.lower()
                         if ext not in ext_set:
-                            break
+                            continue
                         fpath = os.path.join(root,fname)
                         rel_fpath = os.path.relpath(fpath,path)
                         info = None
                         need_update = False
+                        isimage = ext in self.image_ext_set
                         if not mmudb.exists(rel_fpath):
                             info = self._get_file_info(fpath,ext)
                             need_update = True
                         else:
-                            if ext in self.image_ext_set:
-                                info = pickle_loads(mmudb[rel_fpath])
-                                if not info.has_key("ctime_exif"):
-                                    info["ctime_exif"] = self._get_image_exif_ctime(fpath)
-                                    need_update = True
+                            info = pickle_loads(mmudb[rel_fpath])
+                        if isimage and not info.has_key("ctime_exif"):
+                            info["ctime_exif"] = self._get_image_exif_ctime(fpath)
+                            need_update = True
                         if info and need_update:
                             mmudb[rel_fpath] = pickle_dumps(info)
                             fcount += 1
                             log2("%s: %s scanned"%(path,rel_fpath))
-                            gevent.sleep(0.001)
+                            if fcount%200==0:
+                                gevent.sleep(0.1)
+                            else:
+                                gevent.sleep(0)
                         udb[fpath]=True
         finally:
             log2("%s scan finished"%(path))
