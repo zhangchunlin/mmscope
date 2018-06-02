@@ -192,18 +192,14 @@ class MmDir(object):
 
 @expose("/api_log")
 def api_log():
+    from mmfile import logs
     from gevent import sleep
-    udb = functions.get_unqlite(name="mem")
-    logs = udb.collection("logs")
-    logs.create()
-    count = 0
-    for i in logs:
-        if i:
-            logs.delete(i['__id'])
-            return json({"log":i})
-        count += 1
-        if count>10:
-            log.info("try 10 times and fail to get log")
-            break
+
+    for i in range(10):
+        if len(logs)>0:
+            l = list(logs)
+            del logs[:]
+            return json({"logs":l})
         sleep(0.1)
+    log.info("try 10 times and fail to get log")
     return json({})

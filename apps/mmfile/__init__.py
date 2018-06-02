@@ -66,6 +66,7 @@ def mm_dir_children(path):
         return l
     return []
 
+logs = []
 
 class Scanner(object):
     def __init__(self,path):
@@ -96,6 +97,9 @@ class Scanner(object):
         except AttributeError as e:
             log.error("'%s' error: %s"%(fpath,e))
             return None
+        except SyntaxError as e:
+            log.error("'%s' error: %s"%(fpath,e))
+            return None
         if d:
             timestr = ""
 
@@ -120,10 +124,8 @@ class Scanner(object):
             log.error("already scanning, cancel")
             return
 
-        logs = udb.collection("logs")
-        logs.create()
         def log2(msg,finished=False):
-            logs.store({"msg":msg,"finished":finished})
+            logs.append({"msg":msg,"finished":finished})
             log.info(msg)
 
         fcount = 0
@@ -135,7 +137,8 @@ class Scanner(object):
             with mmudb.transaction():
                 ext_set = self.ext_set
                 for root,dnames,fnames in os.walk(path):
-                    log.info("scan %s"%(root))
+                    log2("scan %s"%(root))
+                    gevent.sleep(0.01)
                     for fname in fnames:
                         _, ext = os.path.splitext(fname)
                         ext = ext.lower()
@@ -158,11 +161,7 @@ class Scanner(object):
                             mmudb[rel_fpath] = pickle_dumps(info)
                             fcount += 1
                             log2("%s: %s scanned"%(path,rel_fpath))
-                            if fcount%200==0:
-                                gevent.sleep(0.1)
-                            else:
-                                gevent.sleep(0)
-                        udb[fpath]=True
+                            gevent.sleep(0)
         finally:
             log2("%s scan finished"%(path))
             udb["scanning"] = 'false'
@@ -173,10 +172,12 @@ class Scanner(object):
         root = MediaDirRoot.get(MediaDirRoot.c.path==path)
         if not root:
             log.error("root dir %s not found"%(path))
-            logs.store({"msg":"error %s not found in database"%(path),"finished":True})
+            logs.append({"msg":"error %s not found in database"%(path),"finished":True})
             return
         Begin()
         ncount = 0
+        log.info("check all items in mmudb to create new in db")
+        c = 0
         for k,v in mmudb:
             if not isinstance(k,unicode):
                 k = k.decode("utf8")
@@ -208,17 +209,27 @@ class Scanner(object):
                 mfile = MediaFile(root=root.id,relpath=k,meta=meta.id)
                 mfile.save()
                 meta.update_dup()
-            gevent.sleep(0.001)
+            c += 1
+            if c%100==0:log2("check %s files for detecting new"%(c))
+            gevent.sleep(0)
+        log2("check %s files for new at last"%(c))
+        log.info("check all deleted items")
+        c = 0
+        dcount = 0
         for mf in MediaFile.filter(MediaFile.c.root==root.id):
             fpath = os.path.join(root.path,mf.relpath)
-            deleted = not udb.exists(fpath) and not os.path.isfile(fpath)
+            deleted = not os.path.isfile(fpath)
             if deleted!=mf.deleted:
                 log2("'%s' update deleted: %s -> %s"%(fpath,mf.deleted,deleted))
                 mf.deleted = deleted
                 mf.save()
                 mf.meta.update_dup()
+                dcount += 1
+            c += 1
+            if c%100==0:log2("check %s files for detecting deleted"%(c))
+        log2("check %s files for deleted at last"%(c))
         Commit()
-        log2("finished scanning and update '%s', scan %s new files, add %s files in db"%(path,fcount,ncount),finished=True)
+        log2("finished scanning and update '%s', scan %s new files, add %s files, deleted %s files in db"%(path,fcount,ncount,dcount),finished=True)
 
     def scan(self):
         if ('scanning' in self.udb) and self.udb["scanning"]=='true':

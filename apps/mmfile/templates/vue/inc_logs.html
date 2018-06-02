@@ -13,23 +13,27 @@ Vue.component('log-bar', {
                 url: "{{=url_for('mmfile.views.api_log')}}",
                 data: {},
                 success: function (data) {
-                    var log
-                    log = data.log
+                    var logs,log
+                    logs = data.logs
                     //console.log(log)
-                    if (log==null) {
+                    if (logs==null) {
                         setTimeout(thisc.showlog,5000);
                         //console.log("log null, will try after 5 secs")
                         return
                     }
-                    thisc.msg = log.msg
+                    for (var i=0;i<logs.length;i++)
+                    {
+                        log = logs[i]
+                        thisc.msg = log.msg
+                    }
                     if (!thisc.show) {thisc.show=true}
 
                     if (!log.finished) {
-                        setTimeout(thisc.showlog,5);
-                        //console.log("log not finished, try after 5 ms")
+                        setTimeout(thisc.showlog,1);
+                        //console.log("log not finished, try after 1 ms")
                     }
                     else{
-                        //console.log("log finished")
+                        console.log("log finished")
                     }
                 }
             })
