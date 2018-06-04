@@ -23,9 +23,9 @@
         </i-select>
     </i-col>
 </Row>
-<page :total="total" :page-size="page_size" :current.sync="current" :page-size-opts="[10, 20, 50, 100]" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
+<page :total="total" :page-size="page_size" :current.sync="current" :page-size-opts="[10, 20, 50, 100]" show-sizer  show-elevator @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
 <i-table border :columns="columns_files" :data="data_files" @on-sort-change="table_on_sort_change"></i-table>
-<page :total="total" :page-size="page_size" :current.sync="current" :page-size-opts="[10, 20, 50, 100]" show-sizer @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
+<page :total="total" :page-size="page_size" :current.sync="current" :page-size-opts="[10, 20, 50, 100]" show-sizer  show-elevator @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
 </div>
 <script>
 var vm = new Vue({
@@ -76,7 +76,7 @@ var vm = new Vue({
                     )
                 }
             },
-            { title: 'Create time', key: 'ctime_str', sortable: 'custom', width: "150px" },
+            { title: 'Create time', key: 'ctime_str', sortable: 'custom', sortType: 'asc', width: "150px" },
             { title: 'Size', key: 'size', sortable: 'custom', width: "110px" },
             {
                 title: 'Duplicate',
@@ -112,8 +112,8 @@ var vm = new Vue({
         total : 0,
         page_size : parseInt($.cookie('page_size')) || 10,
         current : 1,
-        sort_key : "",
-        sort_order : ""
+        sort_key : "ctime_str",
+        sort_order : "asc"
     },
     methods : {
         update_list : function(){
