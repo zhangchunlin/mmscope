@@ -7,7 +7,7 @@ import time
 from StringIO import StringIO
 from mimetypes import guess_type
 from sqlalchemy.sql import and_, select
-from uliweb import expose, functions, models
+from uliweb import expose, functions, models, NotFound
 from uliweb.utils.filedown import filedown
 from uliweb.orm import do_, and_
 from PIL import Image
