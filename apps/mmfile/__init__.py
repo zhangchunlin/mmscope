@@ -136,6 +136,7 @@ class Scanner(object):
             mmudb = functions.get_unqlite(path=os.path.join(path,"_mm.udb"))
             with mmudb.transaction():
                 ext_set = self.ext_set
+                c = 0
                 for root,dnames,fnames in os.walk(path):
                     log2("scan %s"%(root))
                     gevent.sleep(0.01)
@@ -157,6 +158,10 @@ class Scanner(object):
                         if isimage and not info.has_key("ctime_exif"):
                             info["ctime_exif"] = self._get_image_exif_ctime(fpath)
                             need_update = True
+
+                        c += 1
+                        if c%100==0:log2("scan %s files"%(c))
+
                         if info and need_update:
                             mmudb[rel_fpath] = pickle_dumps(info)
                             fcount += 1
