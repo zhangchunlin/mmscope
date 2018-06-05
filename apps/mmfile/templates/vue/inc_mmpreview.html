@@ -40,10 +40,24 @@ Vue.component('mm-preview-video', {
     data : function(){
         return {
             url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
-            type : this.mimetype
+            type : this.mimetype,
+            id : this.id,
+            can_show : this.can_show
         }
     },
-    template: '<video controls="controls" width="256"><source :src="url" :type="type" />Your browser does  not support this video tag.</video>'
+    methods : {
+        open : function(){
+            var thisp = this
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.MmFile.api_open_video')}}",
+                data: {
+                    id:thisp.id
+                }
+            })
+        }
+    },
+    template: '<span><video v-if="can_show" controls="controls" width="256"><source :src="url" :type="type" />Your browser does  not support this video tag.</video> <i-button @click="open">Open</i-button></span>'
 })
 
 Vue.component('mm-preview-dup', {

@@ -27,6 +27,7 @@ class MmFile(object):
         return {"mtype_options":mtype_options,"rdir_options":rdir_options}
 
     def api_list(self):
+        from uliweb import settings
         page_size = int(request.values.get("page_size",10))
         current = int(request.values.get("current",1))
         MediaDirRoot = models.mediadirroot
@@ -73,6 +74,7 @@ class MmFile(object):
         def _get_info(d):
             filename = os.path.split(d["relpath"])[-1]
             d["filename"] = filename
+            d["can_show"] = os.path.splitext(filename)[1].lower() not in settings.MMSCOPE.exts_cannot_show_in_browser
             d["ctime_str"] = d["ctime"].strftime("%Y-%m-%d %H:%M")
             tprop = tprops[d["mtype"]]
             d["icon"] = tprop["icon"]
@@ -129,6 +131,22 @@ class MmFile(object):
                 return d
             return json({"list":[_get_info(i) for i in q]})
         return json({"list":[]})
+
+    def api_open_video(self):
+        id_ = request.values.get("id")
+        if id_:
+            MediaFile = models.mediafile
+            MediaDirRoot = models.mediadirroot
+            MediaMetaData = models.mediametadata
+            mf = MediaFile.get(id_)
+            if mf:
+                if mf.meta.mtype==MediaMetaData.MEDIA_TYPE_VIDEO:
+                    from subprocess import Popen
+                    cmd = "smplayer %s"%(mf.get_fpath())
+                    log.info(cmd)
+                    p = Popen(cmd,shell=True)
+                    return json({"success":True,"msg":"Successfully open!"})
+        return json({"success":False,"msg":"could not find the video file"})
 
 @expose('/mmdir')
 class MmDir(object):
