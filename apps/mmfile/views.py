@@ -142,7 +142,7 @@ class MmFile(object):
             if mf:
                 if mf.meta.mtype==MediaMetaData.MEDIA_TYPE_VIDEO:
                     from subprocess import Popen
-                    cmd = "smplayer %s"%(mf.get_fpath())
+                    cmd = "smplayer '%s'"%(mf.get_fpath())
                     log.info(cmd)
                     p = Popen(cmd,shell=True)
                     return json({"success":True,"msg":"Successfully open!"})
