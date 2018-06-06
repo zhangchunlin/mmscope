@@ -148,6 +148,11 @@ class MmFile(object):
                     return json({"success":True,"msg":"Successfully open!"})
         return json({"success":False,"msg":"could not find the video file"})
 
+    def video_preview(self):
+        filename = 'media.jpeg'
+        real_filename = application.get_file('media.jpeg','static')
+        return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
+
 @expose('/mmdir')
 class MmDir(object):
     def __begin__(self):

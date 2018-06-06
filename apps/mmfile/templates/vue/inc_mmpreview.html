@@ -42,7 +42,8 @@ Vue.component('mm-preview-video', {
             url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
             type : this.mimetype,
             id : this.id,
-            can_show : this.can_show
+            can_show : this.can_show,
+            preview_url: "{{=url_for('mmfile.views.MmFile.video_preview')}}"
         }
     },
     methods : {
@@ -53,11 +54,17 @@ Vue.component('mm-preview-video', {
                 url: "{{=url_for('mmfile.views.MmFile.api_open_video')}}",
                 data: {
                     id:thisp.id
-                }
+                },
             })
         }
     },
-    template: '<span><video v-if="can_show" controls="controls" width="256"><source :src="url" :type="type" />Your browser does  not support this video tag.</video> <i-button @click="open">Open</i-button></span>'
+    template: `<span>
+        <video v-if="can_show" controls="controls" width="256"><source :src="url" :type="type" />
+            Your browser does  not support this video tag.
+        </video>
+        <img :src="preview_url" width="256" style="margin: 6px;"></img>
+        <i-button @click="open">Open</i-button>
+    </span>`
 })
 
 Vue.component('mm-preview-dup', {
