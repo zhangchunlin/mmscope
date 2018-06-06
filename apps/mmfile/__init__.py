@@ -138,6 +138,11 @@ class Scanner(object):
                 ext_set = self.ext_set
                 c = 0
                 for root,dnames,fnames in os.walk(path):
+                    dname_root = os.path.split(root)[1]
+                    if dname_root.startswith(".") or dname_root.startswith("_mm"):
+                        del dnames[:]
+                        log.warning("ignore %s"%(root))
+                        continue
                     log2("scan %s"%(root))
                     gevent.sleep(0.01)
                     for fname in fnames:
