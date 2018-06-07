@@ -36,7 +36,7 @@ Vue.component('mm-preview-audio', {
 
 Vue.component('mm-preview-video', {
     delimiters: ['{', '}'],
-    props : ["id","mimetype"],
+    props : ["id","mimetype","can_show"],
     data : function(){
         return {
             url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
@@ -62,8 +62,7 @@ Vue.component('mm-preview-video', {
         <video v-if="can_show" controls="controls" width="256"><source :src="url" :type="type" />
             Your browser does  not support this video tag.
         </video>
-        <img :src="preview_url" width="256" style="margin: 6px;"></img>
-        <i-button @click="open">Open</i-button>
+        <img v-if="!can_show" :src="preview_url" @click="open" width="256" style="margin: 6px;"></img>
     </span>`
 })
 
