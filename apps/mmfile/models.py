@@ -1,7 +1,10 @@
 #coding=utf-8
 from uliweb.orm import *
+from uliweb import settings
 import os
 import logging
+import subprocess
+import re
 
 log = logging.getLogger('mmfile')
 
@@ -34,6 +37,49 @@ class MediaFile(Model):
 
     def get_fpath(self):
         return os.path.join(self.root.path,self.relpath)
+
+    def get_video_preview_img(self):
+        rdpath,fname = os.path.split(self.relpath)
+        dpath = os.path.join(self.root.path,"_mm_preview",rdpath)
+        if not os.path.exists(dpath):
+            log.info("mkdir %s"%(dpath))
+            os.makedirs(dpath)
+        if not os.path.exists(dpath):
+            log.error("create %s failed"%(dpath))
+            return None
+        fpath_pimg = os.path.join(dpath,"%s.jpg"%(fname))
+        fpath = self.get_fpath()
+        if not os.path.exists(fpath_pimg):
+            if not os.path.exists(fpath):
+                return None
+            #get DAR by ffmpeg -i
+            wratio,hratio = 16,9
+            cmd = "ffmpeg -i '%s'"%(fpath)
+            p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            p.wait()
+            stderr = p.stderr.read()
+            cobj = re.compile(r"""DAR (\d+):(\d+)""")
+            mobj = cobj.search(stderr)
+            if mobj:
+                try:
+                    wratio,hratio = mobj.group(1,2)
+                    wratio = int(wratio)
+                    hratio = int(hratio)
+                except IndexError as e:
+                    pass
+
+            w = 256
+            h = w*hratio/wratio
+
+            #https://www.oschina.net/code/snippet_54100_2865
+            cmd = "ffmpeg -v 0 -y -i '%(infile)s' -vframes 1 -ss 5 -vcodec mjpeg -f rawvideo -s %(w)sx%(h)s -aspect %(wratio)s:%(hratio)s '%(outfile)s'"%{"wratio":wratio,"hratio":hratio,"h":h,"w":w,"infile":fpath,"outfile":fpath_pimg}
+            log.info(cmd)
+            if isinstance(cmd,unicode):
+                cmd = cmd.encode(settings.GLOBAL.FILESYSTEM_ENCODING)
+            os.system(cmd)
+        if os.path.exists(fpath_pimg) and os.path.getsize(fpath_pimg)!=0:
+            return fpath_pimg
+        return None
 
 class MediaMetaData(Model):
     size = Field(int)

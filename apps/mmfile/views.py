@@ -139,18 +139,27 @@ class MmFile(object):
             MediaDirRoot = models.mediadirroot
             MediaMetaData = models.mediametadata
             mf = MediaFile.get(id_)
-            if mf:
-                if mf.meta.mtype==MediaMetaData.MEDIA_TYPE_VIDEO:
-                    from subprocess import Popen
+            if mf and mf.meta.mtype==MediaMetaData.MEDIA_TYPE_VIDEO:
+                    from subprocess import Popen,PIPE
                     cmd = "smplayer '%s'"%(mf.get_fpath())
                     log.info(cmd)
-                    p = Popen(cmd,shell=True)
+                    p = Popen(cmd,shell=True,stdout=PIPE)
                     return json({"success":True,"msg":"Successfully open!"})
         return json({"success":False,"msg":"could not find the video file"})
 
     def video_preview(self):
+        id_ = request.values.get("id")
         filename = 'media.jpeg'
-        real_filename = application.get_file('media.jpeg','static')
+        real_filename = None
+        if id_:
+            MediaFile = models.mediafile
+            MediaDirRoot = models.mediadirroot
+            MediaMetaData = models.mediametadata
+            mf = MediaFile.get(id_)
+            if mf and mf.meta.mtype==MediaMetaData.MEDIA_TYPE_VIDEO:
+                real_filename = mf.get_video_preview_img()
+        if not real_filename:
+            real_filename = application.get_file('media.jpeg','static')
         return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
 
 @expose('/mmdir')

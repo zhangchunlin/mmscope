@@ -43,7 +43,7 @@ Vue.component('mm-preview-video', {
             type : this.mimetype,
             id : this.id,
             can_show : this.can_show,
-            preview_url: "{{=url_for('mmfile.views.MmFile.video_preview')}}"
+            preview_url: "{{=url_for('mmfile.views.MmFile.video_preview')}}?id="+this.id
         }
     },
     methods : {
