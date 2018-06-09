@@ -92,6 +92,7 @@ class MediaMetaData(Model):
     mtype = Field(int)
 
     dup = Field(int,default = 1)
+    star = Field(bool,default = False)
 
     @classmethod
     def OnInit(cls):

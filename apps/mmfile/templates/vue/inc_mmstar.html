@@ -1,0 +1,50 @@
+<style type="text/css">
+    .star {
+        font-size: 32px;
+        color: #ff9900;
+    }
+    .unstar {
+        font-size: 32px;
+        color: #bbbec4;
+    }
+</style>
+<script>
+Vue.component('mm-star', {
+    delimiters: ['{', '}'],
+    props : ["id","star"],
+    data : function(){
+        return {
+            id : this.id,
+            i_star : this.star
+        }
+    },
+    computed: {
+        icon_class : function(){
+            return {
+                'ivu-icon':true,
+                'ivu-icon-star':true,
+                'star':this.i_star,
+                'unstar':!this.i_star
+            }
+        }
+    },
+    methods : {
+        change_star : function(){
+            var thisp = this
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.MmFile.api_change_star')}}",
+                data: {
+                    id:thisp.id
+                },
+                success: function (data) {
+                    if (data.success) {
+                        thisp.i_star = data.star
+                    }
+                }
+            })
+        }
+    },
+    template: `<span><i :class="icon_class" @click="change_star"></i></span>`
+})
+</script>

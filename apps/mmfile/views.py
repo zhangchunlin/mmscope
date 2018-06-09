@@ -38,13 +38,14 @@ class MmFile(object):
         select_mtype = int(request.values.get("select_mtype",0))
         select_rdir = int(request.values.get("select_rdir",0))
 
-        keys = ["id","relpath","size","sha1sum","ctime","dup","mtype","rootpath"]
+        keys = ["id","relpath","size","sha1sum","ctime","dup","star","mtype","rootpath"]
         q = select([MediaFile.c.id,
             MediaFile.c.relpath,
             MediaMetaData.c.size,
             MediaMetaData.c.sha1sum,
             MediaMetaData.c.ctime,
             MediaMetaData.c.dup,
+            MediaMetaData.c.star,
             MediaMetaData.c.mtype,
             MediaDirRoot.c.path,
         ])
@@ -161,6 +162,20 @@ class MmFile(object):
         if not real_filename:
             real_filename = application.get_file('media.jpeg','static')
         return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
+
+    def api_change_star(self):
+        id_ = request.values.get("id")
+        if id_:
+            MediaFile = models.mediafile
+            MediaDirRoot = models.mediadirroot
+            MediaMetaData = models.mediametadata
+            mf = MediaFile.get(id_)
+            if mf:
+                star = not bool(mf.meta.star)
+                mf.meta.star = star
+                mf.meta.save()
+                return json({"success":True,"msg":"star ok" if star else "unstar ok","star":star})
+        return json({"success":False,"msg":"cannot find the file"})
 
 @expose('/mmdir')
 class MmDir(object):

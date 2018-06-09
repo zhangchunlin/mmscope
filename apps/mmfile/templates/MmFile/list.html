@@ -10,6 +10,7 @@
 {{use "ui.jquery_cookie"}}
 
 {{include "vue/inc_mmpreview.html"}}
+{{include "vue/inc_mmstar.html"}}
 <div id="app">
 <Row>
     <i-col span="12">
@@ -63,17 +64,24 @@ var vm = new Vue({
                 title: 'Preview',
                 render: function(h,params){
                     var mtype = params.row.mtype;
-                    return h(
-                        'mm-preview-'+params.row.type,
-                        {
-                            props : {
-                                id: params.row.id,
-                                mimetype: params.row.mimetype,
-                                filename: params.row.filename,
-                                fullpath: params.row.full_path,
-                                can_show: params.row.can_show
-                            }
-                        }
+                    return h('div',
+                        [
+                            h('mm-preview-'+params.row.type,{
+                                props : {
+                                    id: params.row.id,
+                                    mimetype: params.row.mimetype,
+                                    filename: params.row.filename,
+                                    fullpath: params.row.full_path,
+                                    can_show: params.row.can_show
+                                }
+                            }),
+                            h('mm-star',{
+                                props : {
+                                    id: params.row.id,
+                                    star: params.row.star
+                                }
+                            })
+                        ]
                     )
                 }
             },
