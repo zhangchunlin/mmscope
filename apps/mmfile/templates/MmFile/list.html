@@ -13,9 +13,16 @@
 {{include "vue/inc_mmstar.html"}}
 <div id="app">
 <Row>
-    <i-col span="12">
+    <i-col span="6">
         <i-select v-model="select_mtype" @on-change="select_mtype_on_change" style="margin: 6px">
             <i-option v-for="item in mtype_options" :value="item.value" :key="item.value"><Icon :type="item.icon" size="30" color="blue"></Icon> {item.label}</i-option>
+        </i-select>
+    </i-col>
+    <i-col span="6">
+        <i-select v-model="select_star" @on-change="select_star_on_change" style="margin: 6px">
+            <i-option value="all"><Icon type="document" size="30" color="blue"></Icon> All(star and not) </i-option>
+            <i-option value="star"><Icon type="star" size="30" color="#ff9900"></Icon> Star </i-option>
+            <i-option value="not_star"><Icon type="star" size="30" color="#bbbec4"></Icon> Not star </i-option>
         </i-select>
     </i-col>
     <i-col span="12">
@@ -114,6 +121,8 @@ var vm = new Vue({
         select_mtype : parseInt($.cookie('select_mtype')) || 0,
         mtype_options : {{=mtype_options}},
 
+        select_star : $.cookie('select_star') || 'all',
+
         select_rdir : parseInt($.cookie('select_rdir')) || 0,
         rdir_options : {{=rdir_options}},
 
@@ -135,6 +144,7 @@ var vm = new Vue({
                     sort_key:vm.sort_key,
                     sort_order:vm.sort_order,
                     select_mtype:vm.select_mtype,
+                    select_star:vm.select_star,
                     select_rdir:vm.select_rdir
                 },
                 success: function (data) {
@@ -145,6 +155,10 @@ var vm = new Vue({
         },
         select_mtype_on_change : function(){
             $.cookie('select_mtype', vm.select_mtype, { path: '/mmfile' });
+            vm.update_list()
+        },
+        select_star_on_change : function(){
+            $.cookie('select_star', vm.select_star, { path: '/mmfile' });
             vm.update_list()
         },
         select_rdir_on_change : function(){

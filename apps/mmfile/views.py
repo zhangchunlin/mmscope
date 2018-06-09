@@ -22,8 +22,8 @@ class MmFile(object):
         MediaDirRoot = models.mediadirroot
         for i in MediaDirRoot.all():i.update_mounted()
         l = settings.MMSCOPE.mtypes
-        mtype_options = json_.dumps([{"value":0,"label":"All","icon":"document"}]+[{"value":k,"label":l[k]["name"],"icon":l[k]["icon"]}for k in l])
-        rdir_options = json_dumps([{"value":0,"label":"All"}]+[{"value":i.id,"label":i.path}for i in MediaDirRoot.filter(MediaDirRoot.c.deleted!=True).filter(MediaDirRoot.c.mounted==True)])
+        mtype_options = json_.dumps([{"value":0,"label":"All types","icon":"document"}]+[{"value":k,"label":l[k]["name"],"icon":l[k]["icon"]}for k in l])
+        rdir_options = json_dumps([{"value":0,"label":"All dirs"}]+[{"value":i.id,"label":i.path}for i in MediaDirRoot.filter(MediaDirRoot.c.deleted!=True).filter(MediaDirRoot.c.mounted==True)])
         return {"mtype_options":mtype_options,"rdir_options":rdir_options}
 
     def api_list(self):
@@ -36,6 +36,7 @@ class MmFile(object):
         sort_key = request.values.get("sort_key")
         sort_order =  request.values.get("sort_order")
         select_mtype = int(request.values.get("select_mtype",0))
+        select_star = request.values.get("select_star",'all')
         select_rdir = int(request.values.get("select_rdir",0))
 
         keys = ["id","relpath","size","sha1sum","ctime","dup","star","mtype","rootpath"]
@@ -56,6 +57,8 @@ class MmFile(object):
         q = q.where(MediaFile.c.deleted==False)
         if select_mtype:
             q = q.where(MediaMetaData.c.mtype==select_mtype)
+        if select_star!="all":
+            q = q.where(MediaMetaData.c.star==bool(select_star=="star"))
         if select_rdir:
             q = q.where(MediaDirRoot.c.id==select_rdir)
         total = q.count().execute().scalar()
