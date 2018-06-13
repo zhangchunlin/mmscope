@@ -2,6 +2,25 @@
     .divlim img{max-width:100%}
 </style>
 <script>
+Vue.component('mm-preview-filename', {
+    delimiters: ['{', '}'],
+    props : ["icon","filename","fullpath"],
+    data : function(){
+        return {
+            i_icon : this.icon,
+            i_filename : this.filename,
+            i_fullpath : this.fullpath,
+            i_modal_show : false
+        }
+    },
+    template: `<span>
+        <modal v-model="i_modal_show" :title=i_filename width=80>
+            <strong>Path</strong>: {i_fullpath}
+        </modal>
+        <Icon :type="i_icon" size=20 color="#330066" @click="i_modal_show=true"></Icon> <span @click="i_modal_show=true">{i_filename}</span>
+    </span>`
+})
+
 Vue.component('mm-preview-image', {
     delimiters: ['{', '}'],
     props : ["id","mimetype","filename","fullpath"],
@@ -103,5 +122,4 @@ Vue.component('mm-preview-dup', {
         <span @click="show">{sha1_pstr}</span>
     </span>`
 })
-
 </script>

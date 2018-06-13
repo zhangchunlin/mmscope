@@ -15,19 +15,19 @@
 <Row>
     <i-col span="6">
         <i-select v-model="select_mtype" @on-change="select_mtype_on_change" style="margin: 6px">
-            <i-option v-for="item in mtype_options" :value="item.value" :key="item.value"><Icon :type="item.icon" size="30" color="blue"></Icon> {item.label}</i-option>
+            <i-option v-for="item in mtype_options" :value="item.value" :key="item.value"><Icon :type="item.icon" size="30" color="#19be6b"></Icon> {item.label}</i-option>
         </i-select>
     </i-col>
     <i-col span="6">
         <i-select v-model="select_star" @on-change="select_star_on_change" style="margin: 6px">
-            <i-option value="all"><Icon type="document" size="30" color="blue"></Icon> All(star and not) </i-option>
+            <i-option value="all"><Icon type="document" size="30" color="#19be6b"></Icon> All(star and not) </i-option>
             <i-option value="star"><Icon type="star" size="30" color="#ff9900"></Icon> Star </i-option>
             <i-option value="not_star"><Icon type="star" size="30" color="#bbbec4"></Icon> Not star </i-option>
         </i-select>
     </i-col>
     <i-col span="12">
         <i-select v-model="select_rdir" @on-change="select_rdir_on_change" style="margin: 6px">
-            <i-option v-for="item in rdir_options" :value="item.value" :key="item.value"> {item.label}</i-option>
+            <i-option v-for="item in rdir_options" :value="item.value" :key="item.value"><Icon type="folder" size="30" color="#19be6b"></Icon> {item.label}</i-option>
         </i-select>
     </i-col>
 </Row>
@@ -45,25 +45,14 @@ var vm = new Vue({
                 title: 'Filename',
                 render: function(h, params){
                     return h(
-                        'div',
-                        [
-                            h("Icon",{
-                                props : {
-                                    type: params.row.icon,
-                                    size: "20",
-                                    color: "#330066"
-                                }
-                            }),
-                            " ",
-                            h("span",
-                                {
-                                    attrs : {
-                                        title: params.row.full_path
-                                    }
-                                },
-                                [params.row.filename]
-                            )
-                        ]
+                        'mm-preview-filename',
+                        {
+                            props : {
+                                icon: params.row.icon,
+                                filename: params.row.filename,
+                                fullpath: params.row.full_path
+                            }
+                        }
                     )
                 }
             },
