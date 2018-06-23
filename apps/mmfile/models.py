@@ -5,6 +5,10 @@ import os
 import logging
 import subprocess
 import re
+import datetime
+import time
+import math
+import re
 
 log = logging.getLogger('mmfile')
 
@@ -26,11 +30,16 @@ class MediaDirRoot(Model):
             if save:
                 self.save()
 
+#https://www.linuxquestions.org/questions/programming-9/python-datetime-to-epoch-4175520007/
+def datetime2epoch(dt):
+    return time.mktime(dt.timetuple())
+
 class MediaFile(Model):
     root = Reference("mediadirroot")
     relpath = Field(str, max_length = 512, nullable=False, index=True)
     meta = Reference("mediametadata", collection_name='file')
     deleted = Field(bool,default = False)
+    props = Field(JSON, default={})
 
     def get_filename(self):
         return os.path.split(self.relpath)[-1]
@@ -80,6 +89,64 @@ class MediaFile(Model):
         if os.path.exists(fpath_pimg) and os.path.getsize(fpath_pimg)!=0:
             return fpath_pimg
         return None
+
+    def get_ctime_options(self):
+        from mmfile import Scanner
+        options = []
+        def add_option(d):
+            epoch = d.get("epoch")
+            found = False
+            for i in options:
+                if i.get("epoch")==epoch:
+                    i["from"] = d["from"]
+                    found = True
+            if not found:
+                options.append(d)
+        #current
+        epoch = datetime2epoch(self.meta.ctime)
+        dt_str = self.meta.ctime.strftime("%Y-%m-%d %H:%M:%S")
+        d = {"epoch":epoch,"dt_str":dt_str,"current":True,"from":"current"}
+        add_option(d)
+
+        #file stat
+        fpath = self.get_fpath()
+        st = os.stat(fpath)
+        epoch = math.floor(st.st_ctime)
+        dt_str = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(epoch))
+        d = {"epoch":epoch,"dt_str":dt_str,"from":"file"}
+        add_option(d)
+
+        #file name
+        cfg_list = [
+            {"rep":"20\d{12}","strp":"%Y%m%d%H%M%S"},
+            {"rep":"20\d{2}-\d{1,2}-\d{1,2}","strp":"%Y-%m-%d"},
+        ]
+        for cfg in cfg_list:
+            rep = cfg["rep"]
+            strp = cfg["strp"]
+            l = re.findall(rep,self.relpath)
+            for i in l:
+                epoch = time.mktime(time.strptime(i, strp))
+                dt_str = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(epoch))
+                d = {"epoch":epoch,"dt_str":dt_str,"from":"file name"}
+                add_option(d)
+
+        #image exif
+        _, ext = os.path.splitext(self.relpath)
+        ext = ext.lower()
+        scannner = Scanner(self.root.path)
+        if ext in scannner.image_ext_set:
+            epoch = scannner.get_image_exif_ctime(fpath)
+            if epoch:
+                dt_str = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(epoch))
+                d = {"epoch":epoch,"dt_str":dt_str,"from":"image exif"}
+                add_option(d)
+
+        return options
+
+    def update_ctime(self, epoch):
+        self.meta.ctime = datetime.datetime.fromtimestamp(epoch)
+        self.meta.save()
 
 class MediaMetaData(Model):
     size = Field(int)

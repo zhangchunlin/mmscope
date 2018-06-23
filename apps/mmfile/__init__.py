@@ -90,7 +90,7 @@ class Scanner(object):
         st = os.stat(fpath)
         return {"size":st.st_size,"ctime":st.st_ctime,"sha1":h.hexdigest()}
 
-    def _get_image_exif_ctime(self,fpath):
+    def get_image_exif_ctime(self,fpath):
         img = Image.open(fpath)
         try:
             d = img._getexif()
@@ -161,7 +161,7 @@ class Scanner(object):
                         else:
                             info = pickle_loads(mmudb[rel_fpath])
                         if isimage and not info.has_key("ctime_exif"):
-                            info["ctime_exif"] = self._get_image_exif_ctime(fpath)
+                            info["ctime_exif"] = self.get_image_exif_ctime(fpath)
                             need_update = True
 
                         c += 1
@@ -251,3 +251,7 @@ class Scanner(object):
 def mm_scan_dir(path):
     o = Scanner(path)
     return o.scan()
+
+def mm_get_image_exif_ctime(root,relpath):
+    o = Scanner(root)
+    return o.get_image_exif_ctime(os.path.join(root,relpath))

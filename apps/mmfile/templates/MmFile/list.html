@@ -11,6 +11,7 @@
 
 {{include "vue/inc_mmpreview.html"}}
 {{include "vue/inc_mmstar.html"}}
+{{include "vue/inc_mmctime.html"}}
 <div id="app">
 <Row>
     <i-col span="6">
@@ -81,7 +82,25 @@ var vm = new Vue({
                     )
                 }
             },
-            { title: 'Create time', key: 'ctime_str', sortable: 'custom', sortType: 'asc', width: "150px" },
+            {
+                title: 'Create time',
+                key: 'ctime_str',
+                sortable: 'custom',
+                sortType: 'asc',
+                width: "150px",
+                render: function(h,params){
+                    return h('div',
+                        [
+                            h('mm-ctime',{
+                                props : {
+                                    id: params.row.id,
+                                    ctime_str: params.row.ctime_str
+                                }
+                            })
+                        ]
+                    )
+                }
+            },
             { title: 'Size', key: 'size', sortable: 'custom', width: "110px" },
             {
                 title: 'Duplicate',

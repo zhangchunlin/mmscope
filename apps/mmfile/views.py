@@ -17,12 +17,20 @@ log = logging.getLogger('mmfile')
 
 @expose('/mmfile')
 class MmFile(object):
+    def __begin__(self):
+        id_ = int(request.values.get("id",0))
+        self.mf = None
+        if id_:
+            self.MediaFile = models.mediafile
+            self.MediaDirRoot = models.mediadirroot
+            self.MediaMetaData = models.mediametadata
+            self.mf = self.MediaFile.get(id_)
     @expose('')
     def list(self):
         MediaDirRoot = models.mediadirroot
         for i in MediaDirRoot.all():i.update_mounted()
         l = settings.MMSCOPE.mtypes
-        mtype_options = json_.dumps([{"value":0,"label":"All types","icon":"document"}]+[{"value":k,"label":l[k]["name"],"icon":l[k]["icon"]}for k in l])
+        mtype_options = json_dumps([{"value":0,"label":"All types","icon":"document"}]+[{"value":k,"label":l[k]["name"],"icon":l[k]["icon"]}for k in l])
         rdir_options = json_dumps([{"value":0,"label":"All dirs"}]+[{"value":i.id,"label":i.path}for i in MediaDirRoot.filter(MediaDirRoot.c.deleted!=True).filter(MediaDirRoot.c.mounted==True)])
         return {"mtype_options":mtype_options,"rdir_options":rdir_options}
 
@@ -79,7 +87,7 @@ class MmFile(object):
             filename = os.path.split(d["relpath"])[-1]
             d["filename"] = filename
             d["can_show"] = os.path.splitext(filename)[1].lower() not in settings.MMSCOPE.exts_cannot_show_in_browser
-            d["ctime_str"] = d["ctime"].strftime("%Y-%m-%d %H:%M")
+            d["ctime_str"] = d["ctime"].strftime("%Y-%m-%d %H:%M:%S")
             tprop = tprops[d["mtype"]]
             d["icon"] = tprop["icon"]
             d["type"] = tprop["type"]
@@ -179,6 +187,27 @@ class MmFile(object):
                 mf.meta.save()
                 return json({"success":True,"msg":"star ok" if star else "unstar ok","star":star})
         return json({"success":False,"msg":"cannot find the file"})
+
+    def api_ctime_options(self):
+        id_ = request.values.get("id")
+        if id_:
+            MediaFile = models.mediafile
+            MediaDirRoot = models.mediadirroot
+            MediaMetaData = models.mediametadata
+            mf = MediaFile.get(id_)
+            l = mf.get_ctime_options()
+            return json({"success":True,"msg":"","list":l})
+        return json({"success":False,"msg":"cannot find the file"})
+
+    def api_ctime_update(self):
+        if self.mf:
+            epoch = request.values.get("epoch")
+            if epoch:
+                epoch = float(epoch)
+                self.mf.update_ctime(epoch)
+                ctime_str = self.mf.meta.ctime.strftime("%Y-%m-%d %H:%M:%S")
+                return json({"success":True,"msg":"create time update successfully","ctime_str":ctime_str})
+        return json({"success":False,"msg":"fail to update ctime"})
 
 @expose('/mmdir')
 class MmDir(object):

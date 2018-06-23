@@ -1,0 +1,82 @@
+<script>
+    Vue.component('mm-ctime', {
+        delimiters: ['{', '}'],
+        props : ["id","ctime_str"],
+        data : function(){
+            return {
+                id : this.id,
+                i_ctime_str : this.ctime_str,
+                i_modal_show : false,
+                option_list : [],
+                current_option : "",
+            }
+        },
+        methods : {
+            show_options : function(){
+                var thisp = this
+                $.ajax({
+                    type: "POST",
+                    url: "{{=url_for('mmfile.views.MmFile.api_ctime_options')}}",
+                    data: {
+                        id:thisp.id
+                    },
+                    success: function (data) {
+                        if (data.success){
+                            thisp.option_list = data.list
+                            var i
+                            for (i = 0; i < data.list.length; i++) {
+                                if (data.list[i].current==true) {
+                                    thisp.current_option = data.list[i].dt_str
+                                }
+                            }
+                            thisp.i_modal_show = true
+                        }
+                    }
+                })
+            },
+            ok : function(){
+                var thisp = this
+                var i
+                var option
+                for (i=0; i<thisp.option_list.length; i++){
+                    if (thisp.option_list[i].dt_str==thisp.current_option){
+                        option = thisp.option_list[i]
+                    }
+                }
+                if (option!=null && option.current==null) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{{=url_for('mmfile.views.MmFile.api_ctime_update')}}",
+                        data: {
+                            id:thisp.id,
+                            epoch:option.epoch,
+                            dt_str:option.dt_str
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                thisp.i_ctime_str = data.ctime_str
+                                thisp.$Message.success(data.msg);
+                            }
+                            else {
+                                thisp.$Message.warning(data.msg);
+                            }
+                        }
+                    })
+                }
+
+            }
+        },
+        template: `<div>
+            <modal v-model="i_modal_show" title="create time" @on-ok="ok">
+                <RadioGroup v-model="current_option" vertical>
+                    <Radio :label="item.dt_str" v-for="item in option_list">
+                        <Icon type="clock"></Icon>
+                        <span>{item.dt_str} ({item.from})</span>
+                        <Icon v-if="item.current" type="checkmark-circled"></Icon>
+                    </Radio>
+                </RadioGroup>
+            </modal>
+            <span @click="show_options">{i_ctime_str}</span>
+        </div>`
+    })
+</script>
