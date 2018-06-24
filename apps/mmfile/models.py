@@ -34,6 +34,9 @@ class MediaDirRoot(Model):
 def datetime2epoch(dt):
     return time.mktime(dt.timetuple())
 
+def epoch2datetime(epoch):
+    return datetime.datetime.fromtimestamp(epoch)
+
 class MediaFile(Model):
     root = Reference("mediadirroot")
     relpath = Field(str, max_length = 512, nullable=False, index=True)
@@ -118,8 +121,8 @@ class MediaFile(Model):
 
         #file name
         cfg_list = [
-            {"rep":"20\d{12}","strp":"%Y%m%d%H%M%S"},
-            {"rep":"20\d{2}-\d{1,2}-\d{1,2}","strp":"%Y-%m-%d"},
+            {"rep":r"20\d{12}","strp":"%Y%m%d%H%M%S"},
+            {"rep":r"20\d{2}-\d{1,2}-\d{1,2}","strp":"%Y-%m-%d"},
         ]
         for cfg in cfg_list:
             rep = cfg["rep"]
@@ -145,7 +148,7 @@ class MediaFile(Model):
         return options
 
     def update_ctime(self, epoch):
-        self.meta.ctime = datetime.datetime.fromtimestamp(epoch)
+        self.meta.ctime = epoch2datetime(epoch)
         self.meta.save()
 
 class MediaMetaData(Model):
