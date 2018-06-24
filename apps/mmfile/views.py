@@ -99,16 +99,11 @@ class MmFile(object):
         return json({"rows":rows,"total":total})
 
     def filedown(self):
-        id_ = int(request.values.get("id",0))
         type = request.values.get("type")
         found = False
-        if id_:
-            MediaDirRoot = models.mediadirroot
-            MediaFile = models.mediafile
-
-            mf = MediaFile.get(id_)
-            filename = mf.get_filename()
-            real_filename = mf.get_fpath()
+        if self.mf:
+            filename = self.mf.get_filename()
+            real_filename = self.mf.get_fpath()
             if os.path.isfile(real_filename):
                 found = True
 
@@ -146,12 +141,8 @@ class MmFile(object):
 
     def api_open_video(self):
         id_ = request.values.get("id")
-        if id_:
-            MediaFile = models.mediafile
-            MediaDirRoot = models.mediadirroot
-            MediaMetaData = models.mediametadata
-            mf = MediaFile.get(id_)
-            if mf and mf.meta.mtype==MediaMetaData.MEDIA_TYPE_VIDEO:
+        if self.mf:
+            if self.mf.meta.mtype==self.MediaMetaData.MEDIA_TYPE_VIDEO:
                     from subprocess import Popen,PIPE
                     cmd = "smplayer '%s'"%(mf.get_fpath())
                     log.info(cmd)
@@ -160,42 +151,26 @@ class MmFile(object):
         return json({"success":False,"msg":"could not find the video file"})
 
     def video_preview(self):
-        id_ = request.values.get("id")
         filename = 'media.jpeg'
         real_filename = None
-        if id_:
-            MediaFile = models.mediafile
-            MediaDirRoot = models.mediadirroot
-            MediaMetaData = models.mediametadata
-            mf = MediaFile.get(id_)
-            if mf and mf.meta.mtype==MediaMetaData.MEDIA_TYPE_VIDEO:
-                real_filename = mf.get_video_preview_img()
+        if self.mf:
+            if self.mf.meta.mtype==self.MediaMetaData.MEDIA_TYPE_VIDEO:
+                real_filename = self.mf.get_video_preview_img()
         if not real_filename:
             real_filename = application.get_file('media.jpeg','static')
         return filedown(request.environ,cache=False,filename=filename,real_filename=real_filename)
 
     def api_change_star(self):
-        id_ = request.values.get("id")
-        if id_:
-            MediaFile = models.mediafile
-            MediaDirRoot = models.mediadirroot
-            MediaMetaData = models.mediametadata
-            mf = MediaFile.get(id_)
-            if mf:
-                star = not bool(mf.meta.star)
-                mf.meta.star = star
-                mf.meta.save()
-                return json({"success":True,"msg":"star ok" if star else "unstar ok","star":star})
+        if self.mf:
+            star = not bool(self.mf.meta.star)
+            self.mf.meta.star = star
+            self.mf.meta.save()
+            return json({"success":True,"msg":"star ok" if star else "unstar ok","star":star})
         return json({"success":False,"msg":"cannot find the file"})
 
     def api_ctime_options(self):
-        id_ = request.values.get("id")
-        if id_:
-            MediaFile = models.mediafile
-            MediaDirRoot = models.mediadirroot
-            MediaMetaData = models.mediametadata
-            mf = MediaFile.get(id_)
-            l = mf.get_ctime_options()
+        if self.mf:
+            l = self.mf.get_ctime_options()
             return json({"success":True,"msg":"","list":l})
         return json({"success":False,"msg":"cannot find the file"})
 
