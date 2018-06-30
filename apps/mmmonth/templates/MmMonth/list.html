@@ -17,7 +17,7 @@
                 <menu-group title="{{=year}}">
                     {{for month in months:}}
                     <menu-item name="{{=month.id}}">
-                        <Icon type="calendar"></Icon> {{=month.get_month_str()}}
+                        <a href="#{{=month.id}}"><Icon type="calendar"></Icon> {{=month.get_month_str()}}</a>
                     </menu-item>
                     {{pass}}
                 </menu-group>
@@ -27,9 +27,9 @@
         <Layout :style="{padding: '0 60px 24px'}">
             {{for year in sorted(mdict.keys()):}}
                 {{months = mdict[year]}}
-                <h1 class="page-header" style="font-size:36px">{{=year}}</h1>
+                <h1 id="{{=year}}" class="page-header" style="font-size:36px">{{=year}}</h1>
                 {{for month in months:}}
-                    <h2 style="padding-bottom: 8px">{{=month.get_month_str()}}</h2>
+                    <h2 id="{{=month.id}}" style="padding-bottom: 8px">{{=month.get_month_str()}}</h2>
                     <mm-month id="{{=month.id}}"></mm-month>
                 {{pass}}
             {{pass}}
