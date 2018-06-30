@@ -1,0 +1,47 @@
+{{extend "layout_mm.html"}}
+
+{{block mainmenu}}
+{{<< mainmenu('mmmonth')}}
+{{end mainmenu}}
+
+{{block content_main}}
+{{use "ui.vue"}}
+{{use "ui.iview"}}
+{{include "vue/inc_mmmonth.html"}}
+<div id="app">
+    <Layout>
+        <Sider hide-trigger :style="{background: '#fff'}">
+            <i-menu>
+                {{for year in sorted(mdict.keys()):}}
+                {{months = mdict[year]}}
+                <menu-group title="{{=year}}">
+                    {{for month in months:}}
+                    <menu-item name="{{=month.id}}">
+                        <Icon type="calendar"></Icon> {{=month.get_month_str()}}
+                    </menu-item>
+                    {{pass}}
+                </menu-group>
+                {{pass}}
+            </i-menu>
+        </Sider>
+        <Layout :style="{padding: '0 60px 24px'}">
+            {{for year in sorted(mdict.keys()):}}
+                {{months = mdict[year]}}
+                <h1 class="page-header" style="font-size:36px">{{=year}}</h1>
+                {{for month in months:}}
+                    <h2 style="padding-bottom: 8px">{{=month.get_month_str()}}</h2>
+                    <mm-month id="{{=month.id}}"></mm-month>
+                {{pass}}
+            {{pass}}
+        </Layout>
+    </Layout>
+</div>
+<script>
+var vm = new Vue({
+    el: '#app',
+    delimiters: ['{', '}'],
+    data: {}
+})
+</script>
+
+{{end content_main}}

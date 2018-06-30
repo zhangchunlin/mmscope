@@ -131,9 +131,7 @@ class MmFile(object):
             def _get_info(i):
                 d = i.to_dict()
                 rootpath = i.root.path
-                relpath = d["relpath"]
-                if not isinstance(relpath,unicode):
-                    relpath = relpath.decode(settings.GLOBAL.FILESYSTEM_ENCODING)
+                relpath = functions.mm_fsenc2unicode(d["relpath"])
                 d["full_path"] = os.path.join(rootpath,relpath)
                 return d
             return json({"list":[_get_info(i) for i in q]})

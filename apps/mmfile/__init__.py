@@ -10,6 +10,7 @@ from datetime import datetime
 from sqlalchemy.sql import and_
 import gevent
 from PIL import Image
+from uliweb import settings
 
 log = logging.getLogger('mmfile')
 
@@ -178,7 +179,8 @@ class Scanner(object):
 
         MediaDirRoot = models.mediadirroot
         MediaFile = models.mediafile
-        MediaMetaData = models.MediaMetaData
+        MediaMetaData = models.mediametadata
+        MediaMonth = models.mediamonth
         root = MediaDirRoot.get(MediaDirRoot.c.path==path)
         if not root:
             log.error("root dir %s not found"%(path))
@@ -217,6 +219,7 @@ class Scanner(object):
                 ncount += 1
                 log.info("add %s in db,%s new files"%(k,ncount))
                 mfile = MediaFile(root=root.id,relpath=k,meta=meta.id)
+                mfile.update_month()
                 mfile.save()
                 meta.update_dup()
             c += 1
@@ -227,6 +230,9 @@ class Scanner(object):
         c = 0
         dcount = 0
         for mf in MediaFile.filter(MediaFile.c.root==root.id):
+            if not mf.month:
+                mf.update_month()
+                mf.save()
             fpath = os.path.join(root.path,mf.relpath)
             deleted = not os.path.isfile(fpath)
             if deleted!=mf.deleted:
@@ -255,3 +261,8 @@ def mm_scan_dir(path):
 def mm_get_image_exif_ctime(root,relpath):
     o = Scanner(root)
     return o.get_image_exif_ctime(os.path.join(root,relpath))
+
+def fsenc2unicode(s):
+    if not isinstance(s,unicode):
+        s = s.decode(settings.GLOBAL.FILESYSTEM_ENCODING)
+    return s

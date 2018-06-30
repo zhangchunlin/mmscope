@@ -1,6 +1,6 @@
 #coding=utf-8
 from uliweb.orm import *
-from uliweb import settings
+from uliweb import settings, models
 import os
 import logging
 import subprocess
@@ -40,7 +40,8 @@ def epoch2datetime(epoch):
 class MediaFile(Model):
     root = Reference("mediadirroot")
     relpath = Field(str, max_length = 512, nullable=False, index=True)
-    meta = Reference("mediametadata", collection_name='file')
+    meta = Reference("mediametadata", collection_name='files')
+    month = Reference("mediamonth", collection_name='files')
     deleted = Field(bool,default = False)
     props = Field(JSON, default={})
 
@@ -150,6 +151,17 @@ class MediaFile(Model):
     def update_ctime(self, epoch):
         self.meta.ctime = epoch2datetime(epoch)
         self.meta.save()
+
+    def update_month(self):
+        ctime = self.meta.ctime
+        mdt = datetime.datetime(ctime.year,ctime.month,1)
+        MediaMonth = models.mediamonth
+        m = MediaMonth.get(MediaMonth.c.month==mdt)
+        if not m:
+            m = MediaMonth(month=mdt)
+            m.save()
+        if self.month!=m.id:
+            self.month = m.id
 
 class MediaMetaData(Model):
     size = Field(int)
