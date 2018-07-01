@@ -151,6 +151,8 @@ class MediaFile(Model):
     def update_ctime(self, epoch):
         self.meta.ctime = epoch2datetime(epoch)
         self.meta.save()
+        self.update_month()
+        self.save()
 
     def update_month(self):
         ctime = self.meta.ctime
