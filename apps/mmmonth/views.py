@@ -12,7 +12,7 @@ class MmMonth(object):
     def list(self):
         MediaMonth = models.mediamonth
         MediaFile = models.mediafile
-        l = MediaMonth.filter(MediaFile.filter(MediaFile.c.month==MediaMonth.c.id).count()>0)
+        l = MediaMonth.filter(MediaMonth.c.id==MediaFile.c.month,MediaFile.c.deleted!=True).group_by(MediaMonth.c.id)
         l = l.order_by(MediaMonth.c.month.asc())
         mdict = {}
         for i in l:
@@ -36,7 +36,7 @@ class MmMonth(object):
         month = MediaMonth.get(id_)
         if not month:
             return json({"success":False,"msg":"month %s not found"%(id_)})
-        l = MediaFile.filter(MediaFile.c.month==month.id)
+        l = MediaFile.filter(MediaFile.c.deleted!=True).filter(MediaFile.c.month==month.id)
         total = l.count()
         if not full:
             l = l.limit(3)
