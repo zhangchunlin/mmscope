@@ -4,16 +4,24 @@ Vue.component('mm-month', {
     delimiters : ['{', '}'],
     props : ["id"],
     data : function(){
-        this.update_list()
         return {
             list : [],
             full : false,
-            more : false
+            more : false,
+            visible : false,
+            updating : false
         }
     },
     methods : {
+        become_visible:function(visible, entry){
+            if (visible && (!this.visible)) {
+                this.update_list()
+                this.visible = true
+            }
+        },
         update_list:function(){
             var thisp = this
+            thisp.updating = true
             $.ajax({
                 type: "POST",
                 url: "{{=url_for('mmmonth.views.MmMonth.api_mm')}}",
@@ -23,18 +31,18 @@ Vue.component('mm-month', {
                         thisp.list = data.list
                         thisp.more = data.more
                     }
+                    thisp.updating = false
                 }
             })
         },
         update_full_list:function(){
-            console.log("update_full_list")
             this.full = true
             this.update_list()
         }
     },
     template: `
-    <span>
-        <component v-bind:is="'mm-preview-'+item.type" v-for="item in list" :id="item.id" :mimetype="item.mimetype" :filename="item.filename" :fullpath="item.fullpath" :can_show="item.can_show"></component> <i v-if="more" class="ivu-icon ivu-icon-more" @click="update_full_list" style="font-size: 64px;"></i>
+    <span v-observe-visibility="become_visible">
+        <component v-bind:is="'mm-preview-'+item.type" v-for="item in list" :id="item.id" :mimetype="item.mimetype" :filename="item.filename" :fullpath="item.fullpath" :can_show="item.can_show"></component> <i v-if="more" class="ivu-icon ivu-icon-more" @click="update_full_list" style="font-size: 64px;"></i> <i class="fa fa-refresh fa-spin" v-if="updating" style="font-size: 64px;"></i>
     </span>
     `
 })

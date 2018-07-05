@@ -12,7 +12,7 @@ class MmMonth(object):
     def list(self):
         MediaMonth = models.mediamonth
         MediaFile = models.mediafile
-        l = MediaMonth.filter(MediaFile.filter(MediaFile.c.month==MediaMonth.c.id).count>0)
+        l = MediaMonth.filter(MediaFile.filter(MediaFile.c.month==MediaMonth.c.id).count()>0)
         l = l.order_by(MediaMonth.c.month.asc())
         mdict = {}
         for i in l:
@@ -26,7 +26,7 @@ class MmMonth(object):
 
     def api_mm(self):
         id_ = int(request.values.get("id",0))
-        full = request.values.get("full",False)
+        full = request.values.get("full","false")=="true"
         if not id_:
             return json({"success":False,"msg":"month not found"})
 
