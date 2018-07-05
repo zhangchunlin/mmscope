@@ -106,9 +106,14 @@ class MmFile(object):
             real_filename = self.mf.get_fpath()
             if os.path.isfile(real_filename):
                 found = True
+            else:
+                if not self.mf.deleted:
+                    self.mf.deleted = True
+                    self.mf.save()
+                log.error("media file '%s' not found"%(real_filename))
 
         if not found:
-            return NotFound
+            error("file not found")
 
         if type=="imgthum":
             i = Image.open(real_filename)
