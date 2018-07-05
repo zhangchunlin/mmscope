@@ -8,6 +8,7 @@ Vue.component('mm-month', {
             list : [],
             full : false,
             more : false,
+            num_more : 0,
             visible : false,
             updating : false
         }
@@ -30,6 +31,7 @@ Vue.component('mm-month', {
                     if (data.success) {
                         thisp.list = data.list
                         thisp.more = data.more
+                        thisp.num_more = data.num_more
                     }
                     thisp.updating = false
                 }
@@ -42,7 +44,7 @@ Vue.component('mm-month', {
     },
     template: `
     <span v-observe-visibility="become_visible">
-        <component v-bind:is="'mm-preview-'+item.type" v-for="item in list" :id="item.id" :mimetype="item.mimetype" :filename="item.filename" :fullpath="item.fullpath" :can_show="item.can_show"></component> <i v-if="more" class="ivu-icon ivu-icon-more" @click="update_full_list" style="font-size: 64px;"></i> <i class="fa fa-refresh fa-spin" v-if="updating" style="font-size: 64px;"></i>
+        <component v-bind:is="'mm-preview-'+item.type" v-for="item in list" :id="item.id" :mimetype="item.mimetype" :filename="item.filename" :fullpath="item.fullpath" :can_show="item.can_show"></component> <i v-if="more" class="ivu-icon ivu-icon-more" @click="update_full_list" style="font-size: 64px;">+{num_more}</i> <i class="fa fa-refresh fa-spin" v-if="updating" style="font-size: 64px;"></i>
     </span>
     `
 })

@@ -60,5 +60,6 @@ class MmMonth(object):
             "msg":"OK",
             "list":list_,
             "num" : num,
-            "more" : total>num
+            "more" : total>num,
+            "num_more" : total-num
         })
