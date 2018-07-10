@@ -23,19 +23,42 @@ Vue.component('mm-preview-filename', {
 
 Vue.component('mm-preview-image', {
     delimiters: ['{', '}'],
-    props : ["id","mimetype","filename","fullpath"],
+    props : ["id","mimetype","filename","fullpath","hidden"],
     data : function(){
         return {
             url : "{{=url_for('mmfile.views.MmFile.filedown')}}?type=imgthum&id="+this.id,
             modal_full : false,
             filename : this.filename,
-            fullpath : this.fullpath
+            fullpath : this.fullpath,
+            showhide : false,
+            i_hidden : this.hidden
+        }
+    },
+    methods : {
+        set_hidden : function(hidden){
+            var thisp = this
+            $.ajax({
+                type: "POST",
+                url: "{{=url_for('mmfile.views.MmFile.api_set_hide')}}",
+                data: {
+                    id : thisp.id,
+                    hidden : hidden
+                },
+                success: function (data) {
+                    if (data.success) {
+                        thisp.i_hidden = data.hidden
+                    }
+                }
+            })
         }
     },
     template: `<span>
         <modal :title="filename" v-model="modal_full" class-name="vertical-center-modal" width="auto" style="text-align:center;vertical-align:middle;" class="divlim">
-            {fullpath}<br/>
-            <img :src="url" style="margin: 6px;">
+            <span v-on:dblclick="showhide=true">{fullpath}</span><br/>
+            <img :src="url" v-if="!i_hidden" v-on:dblclick="showhide=true" style="margin: 6px;">
+            <br/>
+            <button @click="set_hidden(true)" v-if="showhide&&!i_hidden">hide</button>
+            <button @click="set_hidden(false)" v-if="showhide&&i_hidden">unhide</button>
         </modal>
         <img :src="url" width="256" @click="modal_full=true" style="margin: 6px;">
     </span>`

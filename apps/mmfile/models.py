@@ -42,6 +42,7 @@ class MediaFile(Model):
     relpath = Field(str, max_length = 512, nullable=False, index=True)
     meta = Reference("mediametadata", collection_name='files')
     month = Reference("mediamonth", collection_name='files')
+    hidden = Field(bool,default = False)
     deleted = Field(bool,default = False)
     props = Field(JSON, default={})
 

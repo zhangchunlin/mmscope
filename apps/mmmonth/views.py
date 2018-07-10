@@ -10,9 +10,15 @@ class MmMonth(object):
 
     @expose('')
     def list(self):
+        all = request.values.get("all")
         MediaMonth = models.mediamonth
         MediaFile = models.mediafile
-        l = MediaMonth.filter(MediaMonth.c.id==MediaFile.c.month,MediaFile.c.deleted!=True).group_by(MediaMonth.c.id)
+
+        if all==settings.MMSCOPE.all:
+            l = MediaMonth.filter(MediaMonth.c.id==MediaFile.c.month,MediaFile.c.deleted!=True).group_by(MediaMonth.c.id)
+        else:
+            l = MediaMonth.filter(MediaMonth.c.id==MediaFile.c.month,MediaFile.c.deleted!=True,MediaFile.c.hidden!=True).group_by(MediaMonth.c.id)
+
         l = l.order_by(MediaMonth.c.month.asc())
         mdict = {}
         for i in l:

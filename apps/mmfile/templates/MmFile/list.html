@@ -69,7 +69,8 @@ var vm = new Vue({
                                     mimetype: params.row.mimetype,
                                     filename: params.row.filename,
                                     fullpath: params.row.full_path,
-                                    can_show: params.row.can_show
+                                    can_show: params.row.can_show,
+                                    hidden: params.row.hidden
                                 }
                             }),
                             h('mm-star',{
@@ -153,7 +154,8 @@ var vm = new Vue({
                     sort_order:vm.sort_order,
                     select_mtype:vm.select_mtype,
                     select_star:vm.select_star,
-                    select_rdir:vm.select_rdir
+                    select_rdir:vm.select_rdir,
+                    all:"{{=request.values.get('all','')}}"
                 },
                 success: function (data) {
                     vm.data_files = data.rows

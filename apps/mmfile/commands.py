@@ -1,5 +1,6 @@
 from uliweb.core.commands import Command
 import os
+from uliweb.orm import Begin,Commit
 
 class FindExtCommand(Command):
     name = 'findext'
@@ -29,3 +30,24 @@ class FindExtCommand(Command):
         for k in extd:
             if not scan_exts.has_key(k):
                 print("%s : %s"%(k,extd[k]))
+
+class FixModelCommand(Command):
+    name = 'fixmodel'
+    help = 'fix db'
+
+    def handle(self, options, global_options, *args):
+        self.get_application(global_options)
+        from uliweb import settings, models
+
+        MediaDirRoot = models.mediadirroot
+        MediaFile = models.mediafile
+        MediaMetaData = models.mediametadata
+
+        Begin()
+        for i in MediaFile.all():
+            if i.hidden != True:
+                i.hidden = True
+                i.save()
+                i.hidden = False
+                i.save()
+        Commit()

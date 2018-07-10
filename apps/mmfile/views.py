@@ -46,10 +46,12 @@ class MmFile(object):
         select_mtype = int(request.values.get("select_mtype",0))
         select_star = request.values.get("select_star",'all')
         select_rdir = int(request.values.get("select_rdir",0))
+        all = request.values.get("all")
 
-        keys = ["id","relpath","size","sha1sum","ctime","dup","star","mtype","rootpath"]
+        keys = ["id","relpath","hidden","size","sha1sum","ctime","dup","star","mtype","rootpath"]
         q = select([MediaFile.c.id,
             MediaFile.c.relpath,
+            MediaFile.c.hidden,
             MediaMetaData.c.size,
             MediaMetaData.c.sha1sum,
             MediaMetaData.c.ctime,
@@ -63,6 +65,8 @@ class MmFile(object):
             .join(MediaDirRoot.table,and_(MediaFile.c.root==MediaDirRoot.c.id,MediaDirRoot.c.mounted==True))
         )
         q = q.where(MediaFile.c.deleted==False)
+        if all!=settings.MMSCOPE.all:
+            q = q.where(MediaFile.c.hidden==False)
         if select_mtype:
             q = q.where(MediaMetaData.c.mtype==select_mtype)
         if select_star!="all":
@@ -186,6 +190,15 @@ class MmFile(object):
                 ctime_str = self.mf.meta.ctime.strftime("%Y-%m-%d %H:%M:%S")
                 return json({"success":True,"msg":"create time update successfully","ctime_str":ctime_str})
         return json({"success":False,"msg":"fail to update ctime"})
+
+    def api_set_hide(self):
+        if self.mf:
+            hidden = request.values.get("hidden","false")=="true"
+            if self.mf.hidden!=hidden:
+                self.mf.hidden = hidden
+                ret = self.mf.save()
+            return  json({"success":True,"hidden":self.mf.hidden,"msg":"ok"})
+        return json({"success":False,"msg":"cannot find the file"})
 
 @expose('/mmdir')
 class MmDir(object):
