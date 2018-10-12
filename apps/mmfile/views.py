@@ -4,7 +4,7 @@ import json as json_
 import os
 import logging
 import time
-from StringIO import StringIO
+from io import BytesIO
 from mimetypes import guess_type
 from sqlalchemy.sql import and_, select
 from uliweb import expose, functions, models, NotFound
@@ -122,8 +122,8 @@ class MmFile(object):
         if type=="imgthum":
             i = Image.open(real_filename)
             w,h = i.size
-            i.resize((128,(h*128)/w))
-            o = StringIO()
+            i.resize((128,int((h*128)/w)))
+            o = BytesIO()
             i.save(o,format="JPEG")
             return Response(o.getvalue(), status=200, headers=[(('Content-Type', 'image/jpeg'))],
                     direct_passthrough=True)

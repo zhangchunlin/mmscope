@@ -11,6 +11,7 @@ from sqlalchemy.sql import and_
 import gevent
 from PIL import Image
 from uliweb import settings
+from uliweb.utils._compat import text_type
 
 log = logging.getLogger('mmfile')
 
@@ -263,6 +264,6 @@ def mm_get_image_exif_ctime(root,relpath):
     return o.get_image_exif_ctime(os.path.join(root,relpath))
 
 def fsenc2unicode(s):
-    if not isinstance(s,unicode):
+    if not isinstance(s,text_type):
         s = s.decode(settings.GLOBAL.FILESYSTEM_ENCODING)
     return s
