@@ -29,7 +29,7 @@ Vue.component('mm-preview-image', {
             url : "{{=url_for('mmfile.views.MmFile.filedown')}}?type=imgthum&id="+this.id,
             modal_full : false,
             filename : this.filename,
-            fullpath : this.fullpath,
+            //fullpath : this.fullpath,
             showhide : false,
             i_hidden : this.hidden
         }
@@ -66,26 +66,74 @@ Vue.component('mm-preview-image', {
 
 Vue.component('mm-preview-audio', {
     delimiters: ['{', '}'],
-    props : ["id","mimetype"],
+    props : ["id","mimetype","fullpath"],
     data : function(){
         return {
             url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
-            type : this.mimetype
+            type : this.mimetype,
+            mouse_over_media : false,
+            mouse_over_button : false,
+            show_button : false,
+
+            modal_full : false
         }
     },
-    template: '<audio controls="controls"><source :src="url" :type="type" />Your browser does  not support this audio format.</audio>'
+    methods : {
+        enter_media : function(event){
+            this.mouse_over_media = true
+            this.update_show_button()
+        },
+        out_media: function(event){
+            var thisp = this
+            thisp.mouse_over_media = false
+            setTimeout(function(){
+                thisp.update_show_button()
+            }, 1000);
+        },
+        enter_button : function(event){
+            this.mouse_over_button = true
+            this.update_show_button()
+        },
+        out_button: function(event){
+            var thisp = this
+            thisp.mouse_over_button = false
+            setTimeout(function(){
+                thisp.update_show_button()
+            }, 1000);
+        },
+        update_show_button : function(){
+            this.show_button = this.mouse_over_media || this.mouse_over_button
+        }
+    },
+    template: `<span>
+    <modal :title="filename" v-model="modal_full" class-name="vertical-center-modal" width="auto" style="text-align:center;vertical-align:middle;" class="divlim">
+        <span>{fullpath}</span><br/>
+        <audio v-if="modal_full" controls="controls" data-container="body" data-toggle="popover" data-placement="right"><source :src="url" :type="type" />Your browser does  not support this audio format.
+        </audio>
+    </modal>
+    <audio controls="controls" data-container="body" data-toggle="popover" data-placement="right" v-on:mouseover="enter_media" v-on:mouseleave="out_media"><source :src="url" :type="type" />Your browser does  not support this audio format.
+    </audio>
+    <span v-show="show_button" style="position:absolute; opacity:0.8; z-index:999;" v-on:mouseover="enter_button" v-on:mouseleave="out_button"><Button type="info" shape="circle" icon="ios-eye" size="small" @click="modal_full=true" >View</Button></span>
+    </span>`
 })
 
 Vue.component('mm-preview-video', {
     delimiters: ['{', '}'],
-    props : ["id","mimetype","can_show"],
+    props : ["id","mimetype","can_show","fullpath"],
     data : function(){
         return {
             url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
             type : this.mimetype,
             id : this.id,
             can_show : this.can_show,
-            preview_url: "{{=url_for('mmfile.views.MmFile.video_preview')}}?id="+this.id
+            preview_url: "{{=url_for('mmfile.views.MmFile.video_preview')}}?id="+this.id,
+
+            mouse_over_media : false,
+            mouse_over_button : false,
+            show_button : false,
+
+            modal_full : false
+
         }
     },
     methods : {
@@ -98,12 +146,46 @@ Vue.component('mm-preview-video', {
                     id:thisp.id
                 },
             })
+        },
+
+        enter_media : function(event){
+            this.mouse_over_media = true
+            this.update_show_button()
+        },
+        out_media: function(event){
+            var thisp = this
+            thisp.mouse_over_media = false
+            setTimeout(function(){
+                thisp.update_show_button()
+            }, 1000);
+        },
+        enter_button : function(event){
+            this.mouse_over_button = true
+            this.update_show_button()
+        },
+        out_button: function(event){
+            var thisp = this
+            thisp.mouse_over_button = false
+            setTimeout(function(){
+                thisp.update_show_button()
+            }, 1000);
+        },
+        update_show_button : function(){
+            this.show_button = this.mouse_over_media || this.mouse_over_button
         }
     },
     template: `<span>
-        <video v-if="can_show" controls="controls" width="256"><source :src="url" :type="type" />
+        <modal :title="filename" v-model="modal_full" class-name="vertical-center-modal" width="auto" style="text-align:center;vertical-align:middle;" class="divlim">
+            <span>{fullpath}</span><br/>
+            <video v-if="modal_full" controls="controls" width="256"><source :src="url" :type="type" />
+            Your browser does  not support this video tag.
+            </video>
+        </modal>
+
+        <video v-on:mouseover="enter_media" v-on:mouseleave="out_media" v-if="can_show" controls="controls" width="256"><source :src="url" :type="type" />
             Your browser does  not support this video tag.
         </video>
+        <span v-show="show_button" style="position:absolute; opacity:0.8; z-index:999;" v-on:mouseover="enter_button" v-on:mouseleave="out_button"><Button type="info" shape="circle" icon="ios-eye" size="small" @click="modal_full=true" style="left:100px">View</Button></span>
         <img v-if="!can_show" :src="preview_url" @click="open" width="256" style="margin: 6px;"></img>
     </span>`
 })
