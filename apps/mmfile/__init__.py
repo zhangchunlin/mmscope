@@ -102,11 +102,14 @@ class Scanner(object):
         except SyntaxError as e:
             log.error("'%s' error: %s"%(fpath,e))
             return None
+        except OSError as e:
+            log.error("'%s' error: %s"%(fpath,e))
+            return None
         if d:
             timestr = ""
 
             for k in self.exif_keys:
-                if d.has_key(k):
+                if k in d:
                     try:
                         timestr = d[k]
                         return time.mktime(time.strptime(timestr, "%Y:%m:%d %H:%M:%S"))
@@ -162,7 +165,7 @@ class Scanner(object):
                             need_update = True
                         else:
                             info = pickle_loads(mmudb[rel_fpath])
-                        if isimage and not info.has_key("ctime_exif"):
+                        if isimage and not ("ctime_exif" in info):
                             info["ctime_exif"] = self.get_image_exif_ctime(fpath)
                             need_update = True
 
@@ -192,7 +195,7 @@ class Scanner(object):
         log.info("check all items in mmudb to create new in db")
         c = 0
         for k,v in mmudb:
-            if not isinstance(k,unicode):
+            if not isinstance(k,text_type):
                 k = k.decode("utf8")
             d = pickle_loads(v)
             size = d["size"]
@@ -208,7 +211,7 @@ class Scanner(object):
                 )
                 meta.save()
             else:
-                if d.has_key("ctime_exif"):
+                if "ctime_exif" in d:
                     ctime = d["ctime_exif"]
                 if ctime:
                     dt = datetime.fromtimestamp(ctime)

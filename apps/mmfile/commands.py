@@ -23,12 +23,12 @@ class FindExtCommand(Command):
                     _,ext = os.path.splitext(fname)
                     if ext and ext[0]==".":
                         ext = ext.lower()
-                        if extd.has_key(ext):
+                        if ext in extd:
                             extd[ext] += 1
                         else:
                             extd[ext] = 1
         for k in extd:
-            if not scan_exts.has_key(k):
+            if not k in scan_exts:
                 print("%s : %s"%(k,extd[k]))
 
 class FixModelCommand(Command):
