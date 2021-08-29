@@ -1,6 +1,7 @@
 #coding=utf-8
 from uliweb.orm import *
 from uliweb import settings, models
+from uliweb.utils._compat import u, text_type
 import os
 import logging
 import subprocess
@@ -42,6 +43,7 @@ class MediaFile(Model):
     relpath = Field(str, max_length = 512, nullable=False, index=True)
     meta = Reference("mediametadata", collection_name='files')
     month = Reference("mediamonth", collection_name='files')
+    tag = ManyToMany("mediatag", collection_name='files')
     hidden = Field(bool,default = False)
     deleted = Field(bool,default = False)
     props = Field(JSON, default={})
@@ -73,23 +75,24 @@ class MediaFile(Model):
             p.wait()
             stderr = p.stderr.read()
             cobj = re.compile(r"""DAR (\d+):(\d+)""")
-            mobj = cobj.search(stderr)
+            mobj = cobj.search(u(stderr))
             if mobj:
                 try:
                     wratio,hratio = mobj.group(1,2)
                     wratio = int(wratio)
                     hratio = int(hratio)
                 except IndexError as e:
+                    #log.error(e)
                     pass
 
             w = 256
             h = w*hratio/wratio
 
             #https://www.oschina.net/code/snippet_54100_2865
-            cmd = "ffmpeg -v 0 -y -i '%(infile)s' -vframes 1 -ss 5 -vcodec mjpeg -f rawvideo -s %(w)sx%(h)s -aspect %(wratio)s:%(hratio)s '%(outfile)s'"%{"wratio":wratio,"hratio":hratio,"h":h,"w":w,"infile":fpath,"outfile":fpath_pimg}
+            cmd = "ffmpeg -v 0 -y -i '%(infile)s' -vframes 1 -ss 2 -vcodec mjpeg -f rawvideo -s %(w)dx%(h)d -aspect %(wratio)s:%(hratio)s '%(outfile)s'"%{"wratio":wratio,"hratio":hratio,"h":h,"w":w,"infile":fpath,"outfile":fpath_pimg}
             log.info(cmd)
-            if isinstance(cmd,unicode):
-                cmd = cmd.encode(settings.GLOBAL.FILESYSTEM_ENCODING)
+            if isinstance(cmd,text_type):
+                cmd = u(cmd,settings.GLOBAL.FILESYSTEM_ENCODING)
             os.system(cmd)
         if os.path.exists(fpath_pimg) and os.path.getsize(fpath_pimg)!=0:
             return fpath_pimg
