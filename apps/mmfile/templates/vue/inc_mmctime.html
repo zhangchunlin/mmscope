@@ -4,7 +4,6 @@
         props : ["id","ctime_str"],
         data : function(){
             return {
-                id : this.id,
                 i_ctime_str : this.ctime_str,
                 i_modal_show : false,
                 option_list : [],
@@ -69,7 +68,7 @@
         template: `<div>
             <modal v-model="i_modal_show" title="create time" @on-ok="ok">
                 <RadioGroup v-model="current_option" vertical>
-                    <Radio :label="item.dt_str" v-for="item in option_list">
+                    <Radio :label="item.dt_str" v-for="item in option_list" :key="item.epoch">
                         <Icon type="clock"></Icon>
                         <span>{item.dt_str} ({item.from})</span>
                         <Icon v-if="item.current" type="checkmark-circled"></Icon>

@@ -23,15 +23,17 @@ Vue.component('mm-preview-filename', {
 
 Vue.component('mm-preview-image', {
     delimiters: ['{', '}'],
-    props : ["id","mimetype","filename","fullpath","hidden"],
+    props : ["id","mimetype","filename","fullpath","can_show","hidden"],
     data : function(){
         return {
             url : "{{=url_for('mmfile.views.MmFile.filedown')}}?type=imgthum&id="+this.id,
             modal_full : false,
-            filename : this.filename,
-            //fullpath : this.fullpath,
             showhide : false,
-            i_hidden : this.hidden
+            i_hidden : this.hidden,
+
+            mouse_over_media : false,
+            mouse_over_button : false,
+            show_button : false
         }
     },
     methods : {
@@ -50,6 +52,31 @@ Vue.component('mm-preview-image', {
                     }
                 }
             })
+        },
+        enter_media : function(event){
+            this.mouse_over_media = true
+            this.update_show_button()
+        },
+        out_media: function(event){
+            var thisp = this
+            thisp.mouse_over_media = false
+            setTimeout(function(){
+                thisp.update_show_button()
+            }, 1000);
+        },
+        enter_button : function(event){
+            this.mouse_over_button = true
+            this.update_show_button()
+        },
+        out_button: function(event){
+            var thisp = this
+            thisp.mouse_over_button = false
+            setTimeout(function(){
+                thisp.update_show_button()
+            }, 1000);
+        },
+        update_show_button : function(){
+            this.show_button = this.mouse_over_media || this.mouse_over_button
         }
     },
     template: `<span>
@@ -60,17 +87,19 @@ Vue.component('mm-preview-image', {
             <button @click="set_hidden(true)" v-if="showhide&&!i_hidden">hide</button>
             <button @click="set_hidden(false)" v-if="showhide&&i_hidden">unhide</button>
         </modal>
+        <span v-show="show_button" style="position:absolute; opacity:0.8; z-index:999;" v-on:mouseover="enter_button" v-on:mouseleave="out_button"><Button type="info" shape="circle" icon="ios-eye" size="small" style="left:100px">View</Button></span>
         <img :src="url" width="256" @click="modal_full=true" style="margin: 6px;">
     </span>`
 })
 
 Vue.component('mm-preview-audio', {
     delimiters: ['{', '}'],
-    props : ["id","mimetype","fullpath"],
+    props : ["id","mimetype","filename","fullpath","can_show","hidden"],
     data : function(){
         return {
             url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
             type : this.mimetype,
+
             mouse_over_media : false,
             mouse_over_button : false,
             show_button : false,
@@ -119,13 +148,11 @@ Vue.component('mm-preview-audio', {
 
 Vue.component('mm-preview-video', {
     delimiters: ['{', '}'],
-    props : ["id","mimetype","can_show","fullpath"],
+    props : ["id","mimetype","filename","fullpath","can_show","hidden"],
     data : function(){
         return {
             url : "{{=url_for('mmfile.views.MmFile.filedown')}}?id="+this.id,
             type : this.mimetype,
-            id : this.id,
-            can_show : this.can_show,
             preview_url: "{{=url_for('mmfile.views.MmFile.video_preview')}}?id="+this.id,
 
             mouse_over_media : false,
@@ -195,8 +222,6 @@ Vue.component('mm-preview-dup', {
     props : ["sha1","sha1_pstr"],
     data : function(){
         return {
-            sha1 : this.sha1,
-            sha1_pstr : this.sha1_pstr,
             title : "file(s) with same sha1: "+this.sha1,
             list : [],
             modal_show : false
