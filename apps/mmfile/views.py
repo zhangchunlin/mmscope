@@ -83,6 +83,8 @@ class MmFile(object):
                 q = q.order_by(getattr(MediaMetaData.c.dup,sort_order)())
             elif sort_key=="size":
                 q = q.order_by(getattr(MediaMetaData.c.size,sort_order)())
+        else:
+            q = q.order_by(getattr(MediaFile.c.relpath,"asc")())
         q = q.offset((current-1)*page_size)
         q = q.limit(page_size)
         rows = [dict(zip(keys,i)) for i in do_(q)]
@@ -151,7 +153,7 @@ class MmFile(object):
         if self.mf:
             if self.mf.meta.mtype==self.MediaMetaData.MEDIA_TYPE_VIDEO:
                     from subprocess import Popen,PIPE
-                    cmd = "smplayer '%s'"%(mf.get_fpath())
+                    cmd = "smplayer '%s'"%(self.mf.get_fpath())
                     log.info(cmd)
                     p = Popen(cmd,shell=True,stdout=PIPE)
                     return json({"success":True,"msg":"Successfully open!"})
