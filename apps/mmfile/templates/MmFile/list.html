@@ -33,8 +33,9 @@
     </i-col>
 </Row>
 <page :total="total" :page-size="page_size" :current.sync="current" :page-size-opts="[10, 20, 50, 100]" show-sizer  show-elevator @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
-<i-table border :columns="columns_files" :data="data_files" @on-sort-change="table_on_sort_change"></i-table>
+<i-table border :columns="columns_files" :data="data_files" @on-sort-change="table_on_sort_change" v-if="!loading"></i-table>
 <page :total="total" :page-size="page_size" :current.sync="current" :page-size-opts="[10, 20, 50, 100]" show-sizer  show-elevator @on-change="page_on_change" @on-page-size-change="page_on_page_size_change"></page>
+<Spin size="large" fix v-if="loading"></Spin>
 </div>
 <script>
 var vm = new Vue({
@@ -87,7 +88,7 @@ var vm = new Vue({
                 title: 'Create time',
                 key: 'ctime_str',
                 sortable: 'custom',
-                sortType: 'asc',
+                sortType: 'desc',
                 width: "150px",
                 render: function(h,params){
                     return h('div',
@@ -136,14 +137,16 @@ var vm = new Vue({
         rdir_options : {{=rdir_options}},
 
         data_files : [],
+        loading: false,
         total : 0,
         page_size : parseInt($.cookie('page_size')) || 10,
         current : 1,
         sort_key : "ctime_str",
-        sort_order : "asc"
+        sort_order : "desc"
     },
     methods : {
         update_list : function(){
+            var this_ = this
             $.ajax({
                 type: "POST",
                 url: "{{=url_for('mmfile.views.MmFile.api_list')}}",
@@ -158,10 +161,12 @@ var vm = new Vue({
                     all:"{{=request.values.get('all','')}}"
                 },
                 success: function (data) {
-                    vm.data_files = data.rows
-                    vm.total = data.total
+                    this_.data_files = data.rows
+                    this_.total = data.total
+                    this_.loading = false
                 }
             })
+            this_.loading = true
         },
         select_mtype_on_change : function(){
             $.cookie('select_mtype', vm.select_mtype, { path: '/mmfile' });
